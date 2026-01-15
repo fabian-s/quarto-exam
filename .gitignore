@@ -1,0 +1,7 @@
+template.pdf
+template.tex
+*.pdf
+*.tex
+!attic/*.tex
+!attic/**/*.tex
+!_extensions/**/*.tex
