@@ -17,7 +17,7 @@ $$ \hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i-\bar{x})^2$$
 
 \punkte{10}
 
-\leerzeile[5]
+\antwortfeld{4}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:**
@@ -34,7 +34,7 @@ Seien $\mathbf{A}, \mathbf{B}$ Matrizen mit passenden Dimensionen. Berechne mög
 
 a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$ \punkte{4}
 
-\leerzeile[3]
+\antwortfeld{2.5}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:** Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$.
@@ -42,7 +42,7 @@ a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$ \punkte{4}
 
 b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$ \punkte{4}
 
-\leerzeile[3]
+\antwortfeld{2.5}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:** Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\|$.
@@ -50,7 +50,7 @@ b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$ \punkte{4}
 
 c) Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert? \punkte{4}
 
-\leerzeile[4]
+\antwortfeld{3}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:**
@@ -66,7 +66,7 @@ $$\int_0^{\pi} \sin^2(x) \, dx$$
 
 \punkte{8}
 
-\leerzeile[6]
+\antwortfeld{5}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:**
@@ -81,7 +81,7 @@ Erklären Sie den Unterschied zwischen **Kondition** eines Problems und **Stabil
 
 \punkte{10}
 
-\leerzeile[8]
+\antwortfeld{6}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:**

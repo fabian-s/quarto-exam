@@ -54,7 +54,9 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 **Exam content commands:**
 - `## Aufgabe X` - Creates a new exercise with automatic numbering
 - `\punkte{n}` - Displays points: "(n Punkte)"
-- `\leerzeile[n]` - Adds blank line for student answers
+- `\antwortfeld{height}` - Answer box with 5mm grid (height in cm). Only shown in exam mode, hidden in solution mode.
+- `\anzahlaufgaben{}` - Total number of exercises (auto-calculated)
+- `\gesamtpunkte{}` - Total points (auto-calculated)
 - `::: {.content-hidden unless-meta="solution"}` - Conditional solution block
 
 ## Example Document Structure
@@ -76,7 +78,7 @@ format: exam-pdf
 
 Question text here. \punkte{10}
 
-\leerzeile[5]
+\antwortfeld{4}
 
 ::: {.content-hidden unless-meta="solution"}
 **Lösung:**

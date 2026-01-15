@@ -2,6 +2,11 @@
 % Note: xcolor, amsmath, amssymb are already loaded by Quarto
 \usepackage{fancyhdr}
 \usepackage{lastpage}
+\usepackage{tikz}
+
+%% Solution mode toggle - will be set by Lua filter
+\newif\ifsolution
+\solutionfalse
 
 %% Metadata commands - defaults, will be redefined by Lua filter
 \newcommand{\examsemester}{}
@@ -16,11 +21,24 @@
 %% Points command - displays points in parentheses
 \newcommand{\punkte}[1]{\hfill\textbf{(#1 Punkte)}}
 
-%% Blank lines for student answers
+%% Answer field with 5mm grid (only shown when solution=false)
+%% Usage: \antwortfeld{height in cm}, e.g., \antwortfeld{4}
+\newcommand{\antwortfeld}[1]{%
+  \ifsolution
+    \vspace{0.5\baselineskip}% minimal space in solution mode
+  \else
+    \par\vspace{0.3\baselineskip}%
+    \begin{tikzpicture}
+      \draw[step=5mm, gray!40, thin] (0,0) grid (\textwidth, #1);
+      \draw[gray!60] (0,0) rectangle (\textwidth, #1);
+    \end{tikzpicture}%
+    \par\vspace{0.3\baselineskip}%
+  \fi
+}
+
+%% Legacy command - kept for compatibility
 \newcommand{\leerzeile}[1][1]{%
   \par\vspace{#1\baselineskip}%
-  \hrule%
-  \par\vspace{0.3\baselineskip}%
 }
 
 %% Points table - will be redefined by Lua filter

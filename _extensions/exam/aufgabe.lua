@@ -138,15 +138,26 @@ function Pandoc(doc)
   local datum = meta_to_string(doc.meta.datum)
   local dauer = meta_to_string(doc.meta.dauer)
 
+  -- Check solution mode
+  local solution_mode = doc.meta.solution
+  local solution_flag = "\\solutionfalse"
+  if solution_mode then
+    local sol_str = pandoc.utils.stringify(solution_mode)
+    if sol_str == "true" then
+      solution_flag = "\\solutiontrue"
+    end
+  end
+
   -- Build LaTeX command definitions for metadata
   local latex_cmds = string.format([[
+%s
 \renewcommand{\examsemester}{%s}
 \renewcommand{\examveranstaltung}{%s}
 \renewcommand{\examveranstaltungkurz}{%s}
 \renewcommand{\examdozent}{%s}
 \renewcommand{\examdatum}{%s}
 \renewcommand{\examdauer}{%s}
-]], semester, veranstaltung, veranstaltung_kurz, dozent, datum, dauer)
+]], solution_flag, semester, veranstaltung, veranstaltung_kurz, dozent, datum, dauer)
 
   -- Calculate total points
   local total_points = 0
