@@ -10,8 +10,6 @@ format: exam-pdf
 
 {{< include hinweise.qmd >}}
 
-**Die Klausur enthält VIER Aufgaben. Alle Aufgaben sind zu bearbeiten.**
-
 ## Aufgabe 1
 
 Zeigen Sie, dass der folgende Ausdruck der Maximum-Likelihood-Schätzer für die Varianz einer Normalverteilung ist:

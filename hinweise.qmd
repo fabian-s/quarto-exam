@@ -11,6 +11,7 @@
 \vspace{0.5cm}
 
 - **Überprüfen Sie, ob Ihre Angabe vollständig ist.**
+- Die Klausur umfasst **\anzahlaufgaben{} Aufgaben** mit insgesamt **\gesamtpunkte{} Punkten**. Alle Aufgaben sind zu bearbeiten.
 - Füllen Sie bitte das Formular auf der ersten Seite umgehend aus. Schreiben Sie bitte leserlich.
 - Halten Sie für die Kontrolle bitte einen Lichtbildausweis und Ihren Studierendenausweis bereit.
 - Die Bearbeitungszeit beträgt **\examdauer{} Minuten**.

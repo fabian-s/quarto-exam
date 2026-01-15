@@ -148,6 +148,18 @@ function Pandoc(doc)
 \renewcommand{\examdauer}{%s}
 ]], semester, veranstaltung, veranstaltung_kurz, dozent, datum, dauer)
 
+  -- Calculate total points
+  local total_points = 0
+  for _, pts in pairs(exercise_points) do
+    total_points = total_points + pts
+  end
+
+  -- Add exercise count and total points
+  latex_cmds = latex_cmds .. string.format([[
+\renewcommand{\anzahlaufgaben}{%d}
+\renewcommand{\gesamtpunkte}{%d}
+]], exercise_count, total_points)
+
   -- Add points table if we found any points
   local points_table = generate_points_table(exercise_points)
   if points_table then
