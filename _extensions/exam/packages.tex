@@ -1,0 +1,45 @@
+% LMU Exam Package
+% Note: xcolor, amsmath, amssymb are already loaded by Quarto
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+%% Metadata commands - defaults, will be redefined by Lua filter
+\newcommand{\examsemester}{}
+\newcommand{\examveranstaltung}{}
+\newcommand{\examveranstaltungkurz}{}  % Short name for header
+\newcommand{\examdozent}{}
+\newcommand{\examdatum}{}
+\newcommand{\examdauer}{}
+
+%% Points command - displays points in parentheses
+\newcommand{\punkte}[1]{\hfill\textbf{(#1 Punkte)}}
+
+%% Blank lines for student answers
+\newcommand{\leerzeile}[1][1]{%
+  \par\vspace{#1\baselineskip}%
+  \hrule%
+  \par\vspace{0.3\baselineskip}%
+}
+
+%% Points table - will be redefined by Lua filter
+\newcommand{\punktetabelle}{%
+\begin{tabular}{|l|c|c|}
+  \hline
+  & mögliche Punkte & erreichte Punkte \\
+  \hline
+  \hline
+  \textit{(Keine Punkte definiert)} & & \\
+  \hline
+  \textbf{Summe} & & \\
+  \hline
+\end{tabular}%
+}
+
+%% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{\small Klausur \examsemester{} --- \examveranstaltungkurz}
+\fancyhead[R]{\small Name: \rule{4cm}{0.4pt}}
+\fancyfoot[R]{Seite \thepage{} von \pageref{LastPage}}
