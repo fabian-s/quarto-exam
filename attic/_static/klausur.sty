@@ -1,0 +1,302 @@
+%% klausur Packet fürs CIS
+%  Patrick Seebauer
+%  Aus einer Klausur von Michaela Geierhos sind einige Anleihen genommen
+%  im Moment geht es nur für twoside
+%
+%  braucht mindestens die Pakete
+%  ifthen, lastpage und fancyhdr
+%  
+%
+%  Diese Befehle sollten gesetzt werden
+%  \setdozent \setsemester  \setveranstaltung
+%  
+%  ausserdem sollte sich eine Datei "punktespiegel.tex", die am besten leer ist 
+%  im selben Ordner befinden (da wird ein Teil der Tabelle auf der Titelseite hingeschrieben, 
+%  da das aber alles nur mit TeX-Befehlen geht, hatte ich nicht den Nerv, noch einen Fileexists einzubauen  
+%
+%
+%% Eine neue Umgebung aufgabe:
+%  \begin{aufgabe}{<titel>}
+%    ...
+%  \end{aufgabe}
+%
+%       oder:
+%
+%  \begin{aufgabe}[<punkte>]{<titel>}
+%    ...
+%  \end{aufgabe}
+%
+%  WENN <punkte> angegeben wird, und nicht -1 ist (der default Wert, dazu gleich)
+%  wird ein bisschen gezaubert (in die Tabelle wird ein Eintrag gemacht, und unter der 
+%  Aufgabe steht in einer Randnotiz wieviele Punkte(in Kapitalen)).
+%
+%  SONST wird noch mehr gezaubert:
+%  es gibt einen Befehl \punkte{n}, dieser macht nur in einer aufgaben-Umgebung Sinn
+%    In einer list-Umgebung (itemize/enumerate...), sollte er AM ENDE der Items stehen
+%    Bewirkt folgendes:
+%    - wieder wird eine Randnotiz erzeugt, diesmal aber nicht in Kapitalen, sondern in Klammern
+%    - Im aux-File wird etwas notiert, ein counter wird erhöht
+%    - Am ende der aufgaben-Umgebung wird eine Simple Rechnung der 
+%       Art a+b=c (auf ungeraden seiten) oder c = a+b (sonst) Geschrieben, die die Gesamtpunktzahl der aufgabe erläutert
+%  <titel> anzugeben ist kein Problem, solange man sich im ASCII Bereich ausdrücken kann, sonst ist es im Moment sehr ekelig:
+%     Alle Befehle sind durch ein \noescape zu verschleiern (da erst in eine Datei geschrieben Wird), 
+%     utf8 hat bei mir nicht geholfen, und es mussten auch noch TeX-Befehle sein 
+%     (das scharfe ß ist also \ss, nicht \"s oder "s; die Umlaute mit \", nicht nur mit "auszuzeichnen)
+%  
+%  Man kan Aufgaben auch referenzieren.
+%
+%  \leerzeile[n] (default ist 1) fügt n Linien der kompletten Seitenbreite ein
+%
+%  
+%  Am ende Muss einmal \ichbinfertig aufgerufen werden 
+%
+%  Es kann durchaus sein, dass mehr als \pagewidth bzw \pageheight Platz benötigt wird, ich habe nicht nachgerechnet
+% 
+% Spezialkommandos:
+% zum Formatierten Ausgeben gibt es
+% \verb; ... ;    	der Delimiter steht direkt hinter \verb
+%
+% \newpage  				neue Seite
+%
+% Programmtexte:
+% \begin{verbatim}
+% ...
+% \end{verbatim}
+%
+% \vspace{1.5em}\hrule        im Abstand von 1.5em horizontal Line
+% 
+
+\newtheorem{aufgabeaux}{\Large Aufgabe}
+
+\newcounter{kl@punktecount}{}
+\newcounter{kl@unterpunkte}[aufgabeaux]
+\newcounter{kl@unterpunktesum}[aufgabeaux]
+\newcounter{kl@counter}
+
+
+\oddsidemargin-7.5mm %+1In
+\evensidemargin-7.5mm
+\textwidth 174mm
+\topmargin -26mm
+\headheight 15mm
+\headsep 6mm
+\textheight 255mm
+
+\renewcommand{\rmdefault}{bch}
+
+
+\newcommand{\SAVECOUNT}{}
+\newenvironment{aufgabe%
+}[2][-1]{
+  \renewcommand{\SAVECOUNT}{#1}
+  \begin{aufgabeaux}
+    \immediate\write\punktespiegel{\arabic{aufgabeaux}. #2 &}
+    \em
+    }{%
+    \ifnum-1=\SAVECOUNT{}%
+    \setcounter{kl@counter}{0}%
+    \flushright{%
+      \begin{scriptsize}%
+        \whiledo{\value{kl@counter} < \value{kl@unterpunkte}}{%
+          \stepcounter{kl@counter}%
+          \ifnum\value{kl@counter}=1%
+          \else%
+          +%
+          \fi%
+          \ref{kl@aufg\arabic{aufgabeaux}@unterpkte\arabic{kl@counter}}%
+        }%elihw
+        =%
+      \end{scriptsize}
+    }%flushright
+
+    \kl@punkte{\arabic{kl@unterpunktesum}}
+    \else
+    \kl@punkte{\SAVECOUNT}
+    \fi
+  \end{aufgabeaux}
+}%environment
+
+
+\newcommand{\kl@punkte}[1]{
+  \immediate\write\punktespiegel{ #1 &\noexpand\\ \noexpand\hline}
+  \addtocounter{kl@punktecount}{#1}
+  \marginpar{
+    \begin{scriptsize}
+      {\sc#1 Punkt\ifnum#1=1%
+          \else{}e\fi }
+    \end{scriptsize}
+  }
+}
+
+
+
+\newcommand{\punkte}[1]{%
+  \addtocounter{kl@unterpunktesum}{#1}
+  \stepcounter{kl@unterpunkte}
+  \immediate\write\@auxout{\noexpand\newlabel{kl@aufg\arabic{aufgabeaux}@unterpkte\arabic{kl@unterpunkte}}%
+    {{#1}{\thepage}}}
+  \marginpar{%
+    \begin{scriptsize}%
+      (#1 Punkt\ifnum#1=1
+        \else{}e\fi) %
+
+    \end{scriptsize}%
+  }%
+}
+
+
+\newcommand{\leerzeile}[1][1]{
+  \setcounter{kl@counter}{#1}%
+  \whiledo{\arabic{kl@counter} > 0 }{%
+    \vspace{0.9cm}\hrule%
+    \vspace{.5em}%
+    \addtocounter{kl@counter}{-1}%
+  }
+}
+
+\newcommand{\leerzeileprg}[1][1]{
+  \setcounter{kl@counter}{#1}%
+  \whiledo{\arabic{kl@counter} > 0 }{%
+    \vspace{0.7cm}\hrule%
+    \vspace{.5em}%
+    \addtocounter{kl@counter}{-1}%
+  }
+}
+
+
+\newcommand{\setsemester}[1]{\newcommand{\semester}[0]{#1}}
+\newcommand{\setveranstaltung}[1]{\newcommand{\veranstaltung}[0]{#1}}
+\newcommand{\setdozent}[1]{\newcommand{\dozent}[0]{#1}}
+\newcommand{\setdatum}[1]{\newcommand{\datum}[0]{#1}}
+\newcommand{\setdauer}[1]{\newcommand{\dauer}[0]{#1}}
+
+\newcommand{\punktetablle}{
+  \input{punktespiegel}
+  \newwrite\punktespiegel
+  \immediate\openout\punktespiegel=punktespiegel.tex
+}
+
+\newcommand{\zp}{\quad\textbf{2P}}
+\newcommand{\p}{\quad\textbf{1P}}
+\newcommand{\hp}{\quad\textbf{0,5P}}
+\newenvironment{loes}{
+  \color{red}%
+}{}
+
+\newcommand{\cover}[2]{
+  \begin{center}
+    \setlength{\fboxsep}{1pt}
+    \fbox{\parbox[t][#1][t]{.9\textwidth}{\vspace{0.2cm}\hspace{0.2cm}
+        \begin{loes}
+          \textit{Lösung:}\\
+          #2
+        \end{loes}
+        \hfill}}
+  \end{center}
+}
+
+
+\newcommand{\makedeckblatt}{
+  \thispagestyle{empty}
+  \begin{center}
+    %\includegraphics[width=\textwidth]{_input/header_institut.png}
+
+    \begin{small}
+      \vspace{0.4cm}
+      \begin{large}\textbf{ \sc \dauer-minütige Klausur zur Vorlesung\ ,,\veranstaltung{}`` \semester{} \\
+          \vspace{.2cm} \dozent} \end{large}
+      {\sc Klausur am \@date}
+      \vspace{-0.2cm}
+      \rule{17.4cm}{.4mm}
+    \end{small}
+  \end{center}
+  \begin{quote}
+    \begin{small}
+      \begin{tabular}{lll}
+        \sc \raisebox{3mm}{Vorname:}          &  & \put(-1,-1){\dashbox{0.1}(300,20){~}} \\
+        \sc \raisebox{3mm}{Nachname:}         &  & \put(-1,-1){\dashbox{0.1}(300,20){~}} \\
+        \sc \raisebox{3mm}{Matrikelnummer:}   &  & \put(-1,-1){\dashbox{0.1}(300,20){~}} \\
+        \sc \raisebox{3mm}{Studiengang + PO:} &  & \put(-1,-1){\dashbox{0.1}(300,20){~}} \\
+        \sc \raisebox{2mm}{Unterschrift:}     &  & \put(-1,-1){\dashbox{0.1}(300,20){~}} \\
+      \end{tabular}
+    \end{small}
+  \end{quote}
+  \begin{small}
+    \noindent
+    \begin{itemize}
+      \item {\bf Überprüfen Sie, ob Ihre Angabe vollständig ist.} Sie sollte \textbf{\ref{kl@maxaufgaben}} Aufgaben auf \textbf{\pageref{LastPage}} Seiten umfassen.
+      \item Füllen Sie bitte das obenstehende Formular umgehend aus. Schreiben Sie bitte leserlich.
+      \item Halten Sie für die Kontrolle bitte einen Lichtbildausweis und Ihren Studierendenausweis bereit.
+      \item Die Bearbeitungszeit beträgt {\bf \dauer{} Minuten}. Es ist keine vorzeitige Abgabe möglich.
+      \item Verwenden Sie für die Bearbeitung ausschließlich die Ihnen zur Verfügung gestellten Papierbögen. Kennzeichnen Sie jedes zur Abgabe vorgesehene Blatt mit Namen und Matrikelnummer.
+      \item Alle Lösungen müssen nachvollziehbar sein. Dazu gehört auch lesbare Schrift. Ergebnisse müssen klar erkennbar und zuzuordnen sein.
+            % Nur die in den Kästen eingetragenen Ergebnisse werden bepunktet;
+            Falls der Platz auf einem Blatt nicht ausreicht, muss auf dem betreffenden Blatt ein Verweis zur Lösung zu finden sein.
+            % Runden Sie immer auf die {\bf vierte Nachkommastelle}.
+      \item \textbf{Machen Sie kenntlich, falls Sie mit einem Ersatzergebnis weiterrechnen!}
+      \item Es dürfen nur {\bf dokumentenechte Stifte} und keine roten Stifte verwendet werden.
+      \item Zugelassene Hilfsmittel: 1 beidseitig (analog oder digital) beschriftetes DIN A4-Papier
+            %Taschenrechner (nicht programmierbar, ohne Grafik-Funk\-tion) und ausgeteilte Formelsammlung zur Vorlesung {\bf ohne} handschriftliche Notizen oder Markierungen.
+      \item Bei Unterschleif erfolgt eine Meldung an das Prüfungsamt. Sie sind verpflichtet, durch Ihr Verhalten jegliche Missverständnisse diesbezüglich auszuschließen. Sorgen Sie insbesondere dafür, dass sich keinerlei Mobiltelefone und Uhren an Ihrem Arbeitsplatz befinden.
+      \item Verlassen Sie den Prüfungsraum erst, nachdem Sie der Aufsicht die Klausur persönlich übergeben haben. Für den Eingang der kompletten Klausur bei der Aufsicht sind Sie selbst verantwortlich.
+    \end{itemize}
+    \vspace{.2cm}
+  \end{small}
+  \begin{center}
+    \begin{tabular}{|l|c|c|}
+      \hline
+      %Aufgabe 
+            & mögliche Punkte    & erreichte Punkte \\
+      \hline
+      \hline
+      \punktetablle
+      Summe & \ref{kl@maxpunkte} &                  \\ \hline
+      %Note & & \\ \hline 
+    \end{tabular}
+  \end{center}
+  \newpage %Diese Kommandos hier Dürfen erst an dieser Stelle Stehen, da sie sonst das CIS-Logo verschieben!!!
+  \headheight 41pt
+  \topmargin -20mm
+  \textwidth 172mm
+  \pagestyle{fancy}
+  \hoffset-15.2mm
+  \oddsidemargin 0mm
+  \evensidemargin15.2mm
+  \marginparsep 0mm
+  \marginparwidth 15mm
+  \marginparpush 2pt
+}
+\fancyhead{} % clear all header fields
+\fancyhead[l]{
+  \begin{small}
+    \makebox{\framebox[174mm]{Klausur \semester \hfill \veranstaltung}}\vspace*{2mm}\\
+    {\sc Name:}
+  \end{small}
+}
+%\fancyhead[le]{
+%  \begin{small}
+%    \makebox{\framebox[174mm]{\veranstaltung \hfill Nachklausur \semester}}\\
+%            {\sc Name:}
+%  \end{small}
+%}
+%
+\fancyfoot{} % clear all footer fields
+\fancyfoot[r]{Seite \thepage{}  von \pageref{LastPage}}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{1pt}
+\renewcommand{\maketitle}{\makedeckblatt}
+\AtEndDocument{%
+  \immediate\write\punktespiegel{\noexpand\hline}%
+  \immediate\write\@auxout{\noexpand\newlabel{kl@maxpunkte}{{\arabic{kl@punktecount}}{\thepage}}}%
+  \immediate\write\@auxout{\noexpand\newlabel{kl@maxaufgaben}{{\arabic{aufgabeaux}}{\thepage}}}%
+}%
+\newenvironment{changemargin}[3]{%
+  \begin{list}{}{%
+      \setlength{\topsep}{#3}%
+      \setlength{\leftmargin}{#1}%
+      \setlength{\rightmargin}{#2}%
+      \setlength{\listparindent}{\parindent}%
+      \setlength{\itemindent}{\parindent}%
+      \setlength{\parsep}{\parskip}%
+    }%
+    \item[]}{\end{list}}

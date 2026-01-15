@@ -1,32 +1,94 @@
 ---
-unitcode: ETC0000
-unittitle: "Advanced Bean Counting"
-duration: 2 hours 10 minutes
-semester: Semester One 2024
-examperiod: Examination Period
+semester: "Wintersemester 2024/25"
+veranstaltung: "Fortgeschrittene mathematische Methoden in der Statistik"
+veranstaltung-kurz: "FMM"
+dozent: "Prof. Dr. Example, Dr. Assistant"
+datum: "15.02.2025"
+dauer: 90
 format: exam-pdf
 ---
 
-**The exam contains FIVE questions. ALL questions must be answered. The exam is worth 100 marks in total.**
+{{< include hinweise.qmd >}}
 
-\vspace*{2cm}
+**Die Klausur enthält VIER Aufgaben. Alle Aufgaben sind zu bearbeiten.**
 
+## Aufgabe 1
 
-#
-
-Show that the following expression is the MLE for the variance assuming a Gaussian distribution.
+Zeigen Sie, dass der folgende Ausdruck der Maximum-Likelihood-Schätzer für die Varianz einer Normalverteilung ist:
 $$ \hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i-\bar{x})^2$$
 
-\marks{20}
+\punkte{10}
 
-#
+\leerzeile[5]
 
-Second question.
+::: {.content-hidden unless-meta="solution"}
+**Lösung:**
 
-(a)
+Die Likelihood-Funktion für eine Normalverteilung ist:
+$$L(\mu, \sigma^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i-\mu)^2}{2\sigma^2}\right)$$
 
-    Part a. \marks{4}
+Nach Ableitung und Nullsetzen erhält man den MLE-Schätzer.
+:::
 
-(b) More stuff. \marks{10}
+## Aufgabe 2
 
-(c) Final part. \marks{6}
+Seien $\mathbf{A}, \mathbf{B}$ Matrizen mit passenden Dimensionen. Berechne möglichst gute Schranken für die relativen Konditionszahlen.
+
+a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$ \punkte{4}
+
+\leerzeile[3]
+
+::: {.content-hidden unless-meta="solution"}
+**Lösung:** Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$.
+:::
+
+b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$ \punkte{4}
+
+\leerzeile[3]
+
+::: {.content-hidden unless-meta="solution"}
+**Lösung:** Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\|$.
+:::
+
+c) Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert? \punkte{4}
+
+\leerzeile[4]
+
+::: {.content-hidden unless-meta="solution"}
+**Lösung:**
+
+Das Problem a) ist schlecht konditioniert wenn $\mathbf{A} \approx -\mathbf{B}$.
+Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$.
+:::
+
+## Aufgabe 3
+
+Berechnen Sie das bestimmte Integral:
+$$\int_0^{\pi} \sin^2(x) \, dx$$
+
+\punkte{8}
+
+\leerzeile[6]
+
+::: {.content-hidden unless-meta="solution"}
+**Lösung:**
+
+Mit der Identität $\sin^2(x) = \frac{1 - \cos(2x)}{2}$:
+$$\int_0^{\pi} \sin^2(x) \, dx = \int_0^{\pi} \frac{1 - \cos(2x)}{2} \, dx = \frac{\pi}{2}$$
+:::
+
+## Aufgabe 4
+
+Erklären Sie den Unterschied zwischen **Kondition** eines Problems und **Stabilität** eines Algorithmus.
+
+\punkte{10}
+
+\leerzeile[8]
+
+::: {.content-hidden unless-meta="solution"}
+**Lösung:**
+
+**Kondition** ist eine Eigenschaft des mathematischen Problems selbst und beschreibt, wie empfindlich die Lösung auf kleine Änderungen der Eingabedaten reagiert.
+
+**Stabilität** ist eine Eigenschaft des Algorithmus und beschreibt, wie sich Rundungsfehler während der Berechnung fortpflanzen.
+:::

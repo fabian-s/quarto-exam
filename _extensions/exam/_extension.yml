@@ -1,23 +1,28 @@
-title: Monash Exam
-author: Rob J Hyndman
-version: 2.0.0
+title: LMU Exam
+author: Fabian Scheipl
+version: 1.0.0
 quarto-required: ">=1.4.0"
 contributes:
   formats:
     pdf:
-      title: "&nbsp;"
+      documentclass: article
       papersize: a4
-      fontsize: 11pt
+      fontsize: 12pt
+      lang: de
       toc: false
-      fig-width: 8
-      fig-height: 5
-      out-width: 100%
+      number-sections: false
       pdf-engine: pdflatex
-      geometry: margin=2cm
-      highlight: tango
+      keep-tex: true
+      geometry:
+        - margin=2cm
+        - marginparwidth=18mm
+        - marginparsep=2mm
       block-headings: false
-      template-partials:
-        - before-title.tex
-        - after-body.tex
-      format-resources:
-        - monash1line.jpg
+      filters:
+        - aufgabe.lua
+      include-in-header:
+        - packages.tex
+      include-before-body:
+        - deckblatt.tex
+      include-after-body:
+        - zusatzblatt.tex

@@ -1,0 +1,23 @@
+<!-- Exam instructions page - customize this for your exam -->
+<!-- Include in your exam with: {{< include hinweise.qmd >}} -->
+
+\thispagestyle{empty}
+
+\begin{center}
+\Large\textbf{Hinweise zur Klausur}\\[0.3cm]
+\rule{\textwidth}{0.4mm}
+\end{center}
+
+\vspace{0.5cm}
+
+- **Überprüfen Sie, ob Ihre Angabe vollständig ist.**
+- Füllen Sie bitte das Formular auf der ersten Seite umgehend aus. Schreiben Sie bitte leserlich.
+- Halten Sie für die Kontrolle bitte einen Lichtbildausweis und Ihren Studierendenausweis bereit.
+- Die Bearbeitungszeit beträgt **\examdauer{} Minuten**.
+- Verwenden Sie für die Bearbeitung ausschließlich die Ihnen zur Verfügung gestellten Papierbögen. Kennzeichnen Sie jedes zur Abgabe vorgesehene Blatt mit Namen und Matrikelnummer.
+- Alle Lösungen müssen nachvollziehbar sein. Dazu gehört auch lesbare Schrift.
+- Es dürfen nur **dokumentenechte Stifte** und keine roten Stifte verwendet werden.
+- Bei Unterschleif erfolgt eine Meldung an das Prüfungsamt.
+
+\vfill
+\newpage

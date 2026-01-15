@@ -1,0 +1,165 @@
+---
+format: 
+  pdf:
+    pdf-engine: pdflatex
+    documentclass: scrartcl
+    include-in-header:
+      - text: |
+          \usepackage[headsepline,headtopline]{scrlayer-scrpage}
+          \usepackage[ngerman, provide=*]{babel}
+          \usepackage{lmodern}
+          \usepackage{enumerate}
+      - file: ../../latex-shortcuts/math.tex
+      - file: ../../latex-shortcuts/stats.tex
+    include-before-body:
+     - text: |
+         \pagestyle{scrheadings}
+         \clearpairofpagestyles
+         \ihead{\normalfont Fortgeschrittene mathematische Methoden in der Statistik 
+           \\ Dr.~Fabian Scheipl, Jana Gau\ss}
+         \ohead{\normalfont WS 25/26 \\ LMU München}
+    keep-tex: true
+    mathfont: Latin Modern Math
+    highlight-style: github
+---
+
+# Übungsblatt 2
+
+## Recap
+
+- **Matrixnormen** messen die Größe einer Matrix und sind nützlich zur Abschätzung von Fehlern in Algorithmen/Berechnungen. Wichtig sind die **Frobenius-Norm**: $\| \bA \|_F = \sqrt{\sum_{i=1}^n \sum_{j = 1}^m a_{ij}^2} = \sqrt{\tr(A^T A)}$ und **Operatornormen** $\| \bA \|_V = \max_{\bx \neq 0} \| \bA \bx \|_V / \| \bx \|_V = \max_{\| \bx\|_V = 1} \| A \bx \|_V$ mit $\| \cdot \|_V$ Vektornorm auf $\R^n$ mit der Spektralnorm (mit $\| \cdot \|_V$ als euklidische Norm) als Spezialfall: $\| \bA \|_2 = \sqrt{\lambda_{\max} (\bA^T \bA)}$.
+- Alle Operatornormen sind **submultiplikativ** ($\| \bA \bB \| \le \| \bA \| \cdot \| \bB\|$) und mit der zugehörigen Vektornorm **verträglich** ($\| \bA \bx \|_V \le \| \bA \|_V \| \bx \|_V$).
+- Ein Algorithmus zum Lösen eines Problems macht Fehler, wenn a) der Input fehlerhaft ist (z.B. Messfehler) oder b) der Algorithmus fehlerhaft ist (z.B. Rundung, Approximation). 
+- b): Eigenschaft des Algorithmus (**Stabilität**), a): Eigenschaft des Problems (**Kondition**).
+- Die **absolute** und **relative Konditionszahl** $\kappa_{abs}$ und $\kappa_{rel}$ eines Problems $f$ mit Input $\bx$ sind die kleinsten Zahlen, sodass $$\| f(\tilde \bx) - f(\bx) \| \le \kappa_{abs} \| \tilde \bx - \bx \|, \quad \frac{\| f(\tilde \bx) - f(\bx) \|}{\| f(\bx) \|} \le  \kappa_{rel} \frac{ \| \tilde \bx - \bx \|}{ \|  \bx \|}, \quad \text{für } \tilde \bx \to \bx.  $$
+- Die **Konditionszahl** einer (invertierbaren) **Matrix** $\bA$ ist $\kappa (\bA) = \| \bA \| \| \bA^{-1} \|$. Es gilt $\kappa (\bA) = \kappa_{rel}$ für $f(\by) = \bA^{-1} \by$, d.h. Lösen von $\bA \bx = \by$.
+- Wenn sich ein Algorithmus in Teilschritte zerlegen lässt, hängt die oben erwähnte **Stabilität** von der **Kondition** der zuletzt ausgeführten Teilprobleme ab. Schlecht konditionierte Schritte sollten also möglichst früh ausgeführt werden.
+
+## Aufgabe 2.1
+
+Zeige, dass für beliebige Vektoren $\bu, \bv$ gilt: $\| \bu \bv^T \|_2 = \| \bu \|_2 \| \bv \|_2$.
+
+::: {.content-hidden unless-meta="solution"}
+### Lösung
+Die Spektralnorm ist definiert als $\| \bA \|_2 = \sqrt{\lambda_{\max}(\bA^T \bA)}$. 
+Wir betrachten also die Matrix $$(\bu \bv^T)^T (\bu \bv^T) = \bv \bu^T \bu \bv^T = \| \bu \|_2^2 \bv \bv^T.$$
+Von dieser Matrix müssen wir den größten Eigenwert finden.
+$\bv$ ist ein Eigenvektor der Matrix zum Eigenwert $\| \bu \|_2^2 \| \bv \|_2^2$:
+$$ (\| \bu \|_2^2 \bv \bv^T) \bv = \| \bu \|_2^2 \bv (\bv^T \bv) =  \| \bu \|_2^2 \| \bv \|_2^2 \bv.$$
+Wir müssen noch begründen, warum das der größte Eigenwert ist: Sei $n$ die Dimension von $\bv$ und sei $\bv, \bx_1, \ldots, \bx_{n-1}$ eine Orthogonalbasis von $\R^n$.
+Für $\bx_i, i = 1, \ldots, n-1$ gilt 
+$$ (\| \bu \|_2^2 \bv \bv^T) \bx_i = \| \bu \|_2^2 \bv ( \bv^T \bx_i) = 0,$$
+da $\bx_i$ orthogonal ist zu $\bv$ (somit $\bv^T \bx_i = 0$).
+Somit ist jedes $\bx_i, i = 1, \ldots, n-1$ ein Eigenvektor zum Eigenwert 0.
+Also[^4] ist $\| \bu \|_2^2 \| \bv \|_2^2$ der größte Eigenwert, somit $\| \bu \bv^T \|_2 = \sqrt{\lambda_{\max}((\bu \bv^T)^T (\bu \bv^T))} =  \| \bu \|_2 \| \bv \|_2$.
+
+Alternativ:
+Aus der Submultiplikativität folgt[^2] $\| \bu \bv^T \|_2 \le \| \bu \|_2 \| \bv \|_2$.
+Wir haben somit eine obere Schranke für $\| \bu \bv^T \|_2$.
+Unter Nutzung der Definition $\| \bA \|_2 = \max_{\bx \neq 0} \| \bA \bx \|_2 / \| \bx \|_2$ zeigen wir, dass diese Schranke erreicht wird:
+Sei $\bx = \bv$. Dann gilt
+$$ \frac{\| \bu \bv^T \bv \|_2 }{\| \bv \|_2} = \frac{ \| \bv \|_2^2 \| \bu\|_2 }{\| \bv \|_2}=  \| \bu \|_2 \| \bv \|_2. $$
+
+
+[^2]: Anmerkung: Wir müssten hier $\bu$ und $\bv^T$ als Matrizen behandeln. Man kann sich überlegen, dass die $\| \cdot \|_2$ Norm für Matrizen angewandt auf einen Vektor $\bx$ oder $\bx^T$ gleich der euklidischen Norm für Vektoren ist.
+
+[^4]: Formal: Wir haben gezeigt, dass es eine Basis aus Eigenvektoren von $\bA^T \bA$ gibt ($\bv, \bx_1, \ldots, \bx_{n-1}$). Sei $\bx$ ein Eigenvektor von $\bA^T \bA$. Dann muss $\bx$ entweder ein Vielfaches von $\bv$ sein oder eine Linearkombination von $\bx_1, \ldots, \bx_{n-1}$, also ein Eigenvektor zum Eigenwert 0. Es kann also keine weiteren Eigenwerte außer $0$ und $\| \bu \|_2^2 \| \bv \|_2^2$ geben.
+:::
+
+## Aufgabe 2.2
+
+Seien $\bA, \bB$ Matrizen mit passenden Dimensionen. Berechne möglichst gute Schranken für die relativen Konditionszahlen (bzgl Fehler in $\bA$, für eine nicht näher spezifizierte, submultiplikative Norm) der folgenden Probleme. Für welche $\bA, \bB$ sind die Probleme schlecht konditioniert?
+$$ a) \ f(\bA) = \bA + \bB, \qquad b) \ f(\bA) = \bA \bB, \qquad c) \ f(\bA) = \bA^{-1} \bB.$$
+*Hinweis:* Nutze bei c), dass $\|\wt \bA^{-1} - \bA^{-1}\| = \|\wt \bA^{-1}(\bA - \wt \bA)\bA^{-1}\|$ gilt und dass Matrix-Invertierung stetig ist, also $\| \wt \bA^{-1} \| \to \| \bA^{-1} \|$ für $\|\wt \bA  -  \bA \| \to 0$.
+
+
+::: {.content-hidden unless-meta="solution"}
+### Lösung
+
+(a)  Es gilt \begin{align*}
+      \frac{\| (\wt \bA + \bB) - (\bA + \bB) \|}{\| \bA + \bB \|}
+      = \frac{\| \wt \bA  - \bA \|}{\| \bA + \bB \|}
+      = \frac{\|\bA\|}{\| \bA + \bB \|} \frac{\| \wt \bA  - \bA \|}{\|\bA\|},
+    \end{align*} also ist $\kappa_{rel} = \|\bA\| / \| \bA + \bB \|$. Das Problem ist schlecht konditioniert, wenn $\bA \approx - \bB$ und $\|\bA\|$ groß ist.
+
+(b)  Es gilt \begin{align*}
+      \frac{\| \wt \bA \bB - \bA \bB \|}{\| \bA \bB \|}
+      = \frac{\| (\wt \bA  - \bA) \bB \|}{\| \bA \bB \|}
+      \le \frac{\| \wt \bA  - \bA  \|\|\bB\|}{\| \bA \bB \|}
+     =\frac{\| \bA \|\|\bB\|}{\| \bA \bB \|}  \frac{\| \wt \bA  - \bA \|}{\|\bA\|},
+    \end{align*} also ist $\kappa_{rel} \le \|\bA\|\|\bB\| / \| \bA \bB \|$, wobei $\|\bA\|\|\bB\| / \| \bA \bB \| \ge 1$ (Submultiplikativität). Das Problem ist schlecht konditioniert, wenn $\bA\bB \approx 0$. Das ist zum Beispiel der Fall, wenn die Spalten von $\bB$ (fast) orthogonal zu den Zeilen von $\bA$ sind.
+
+(c)  Es gilt $\wt \bA^{-1}\bB - \bA^{-1}\bB = (\wt \bA^{-1} - \bA^{-1})\bB$ und \begin{align*}
+      \|\wt \bA^{-1} - \bA^{-1}\| = \|\wt \bA^{-1}(\bA - \wt \bA)\bA^{-1}\|
+      \le \|\wt \bA^{-1} \|  \|\bA - \wt \bA \|  \|\bA^{-1}\|.
+    \end{align*} Da Matrix-Invertierungen stetig sind (siehe unten), gilt $\| \wt \bA^{-1} \| \to \| \bA^{-1} \|$ für $\wt \bA^{-1} \to \bA^{-1}$ und somit \begin{equation*}
+      \frac{\| \wt \bA^{-1} \bB - \bA^{-1} \bB \|}{\| \bA^{-1} \bB \|}
+      \le \frac{\|  \wt \bA^{-1} - \bA^{-1} \| \|\bB \|}{\| \bA^{-1} \bB \|} \le \frac{ \|\bA^{-1}\|^2 \|\bA\| \|\bB\|}{\|\bA^{-1} \bB\|}  \frac{\| \wt \bA  - \bA  \|}{\| \bA\| } \le \kappa(\bA)\frac{ \|\bA^{-1}\|\|\bB\|}{\|\bA^{-1} \bB\|}  \frac{\| \wt \bA  - \bA  \|}{\| \bA\| }, 
+    \end{equation*}
+    wobei $\kappa(\bA) = \|\bA\| \|\bA^{-1}\|$ die Konditionszahl von $\bA$ ist. Also ist $$\kappa_{rel} \le \kappa(\bA)\frac{ \|\bA^{-1}\|\|\bB\|}{\|\bA^{-1} \bB\|} $$ das Produkt der Konditionszahl von $\bA$ ($\kappa(\bA)$) und der Konditionszahl für's Multiplizieren von $\bA^{-1}$ und $\bB$ ($\|\bA^{-1}\|\|\bB\| / \|\bA^{-1} \bB\|$)[^3]. Das Problem ist schlecht konditioniert, falls $\kappa(\bA)$ groß ist oder die Zeilen von $\bA^{-1}$ und Spalten von $\bB$ fast orthogonal sind. Das ist zum Beispiel der Fall, wenn $\col(\bB) = \ker(\bA^{-1})$.
+    
+[^3]: Man kann allgemein zeigen, dass eine obere Schranke der relativen Konditionszahl der Verkettung $f(x) = h(g(x))$ durch das Produkt der relativen Konditionszahlen von $h$ und $g$ gegegben ist. $f(\bA) = \bA^{-1} \bB$ ist eine Verkettung von $g(\bA) = \bA^{-1}$ und $h(\bA) = \bA \bB$. Die relative Konditionszahl von $g$ ist die Konditionszahl von $\kappa (\bA)$; das kann man mit ähnlichen Umformungen wie oben zeigen.
+
+*Stetigkeit von* $\bA \mapsto \bA^{-1}$: \begin{align*}
+\|\wt \bA^{-1} - \bA^{-1}\| &= \|\wt \bA^{-1}(\bA - \wt \bA)\bA^{-1}\| \\
+&\le \|\wt \bA^{-1} \|  \|\bA - \wt \bA \|  \|\bA^{-1}\|  \\
+&= \|\bA^{-1} + \wt \bA^{-1} - \bA^{-1} \|  \|\bA - \wt \bA \|  \|\bA^{-1}\|  \\
+&\le (\| \bA^{-1} \| + \|\wt \bA^{-1} - \bA^{-1}\| ) \|\bA - \wt \bA \|  \|\bA^{-1}\|.
+\end{align*}
+
+Lösen wir nach $\|\wt \bA^{-1} - \bA^{-1}\|$ auf, erhalten wir $$ \|\wt \bA^{-1} - \bA^{-1}\| \le \frac{\|\bA^{-1}\|^2}{1 -  \| \wt \bA - \bA\| \|\bA^{-1}\|}  \| \wt \bA - \bA\|.$$ Falls $\|\bA^{-1}\| < \infty$ und $\| \wt \bA - \bA \| \to 0$, gilt also $\|\wt \bA^{-1} - \bA^{-1}\| \to 0$ (sprich: $\bA \mapsto \bA^{-1}$ ist stetig).
+:::
+
+## Aufgabe 2.3
+
+Sei $\bA$ eine Matrix und $E = \{\wt \bA\colon \|\wt \bA - \bA\| \le \delta \|\bA\|\}$ die Menge der bezüglich der Toleranz $\delta$ nicht zu unterscheidenden Inputs. Wir nennen dann $\bA$ *numerisch singulär* bezüglich $\delta$, wenn $\kappa(\bA) \delta \ge 1$. Sei nun $\eps \in (0,1)$ eine Zahl mit $\eps \le \delta$.
+
+(a) Zeige (z.B. für $\| \cdot \|_2$ oder $\| \cdot \|_F$), dass die folgende Matrix numerisch singulär ist: $$\bA = \begin{pmatrix} 1 & 0 \\ 0 & \eps \end{pmatrix}.$$
+(b) Finde eine Zahl $\eps$, sodass $\bA$ gegenüber der Maschinengenauigkeit[^1] singulär ist. Überprüfe, was in $\texttt{R}$ passiert, wenn wir $\bA\bx = \bm 1$ durch `solve(A, c(1, 1))` lösen wollen.
+
+[^1]: Maschinengenauigkeit (*machine epsilon*): Computer approximieren reelle Zahlen durch "Gleitkommazahlen" (*floating point numbers*). Sei $fl(x)$ die Approximation für $x \in \mathbb{R}$. Die Maschinengenauigkeit $\epsilon_{mach}$ ist eine Schranke für den Approximationsfehler: $|x - fl(x)| \le \frac{1}{2} \epsilon_{mach} | x|$. In $\texttt{R}$ kann man sich die Maschinengenauigkeit mit `.Machine$double.eps` ausgeben lassen. Siehe auch \url{https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/.Machine}
+
+
+(c)  Sei nun $\bb = (1, \eps)$. Was passiert, wenn wir das Problem $\bA \bx = \bb$ durch `solve(A, b)` lösen wollen? Können wir $\bA$ und $\bb$ so manipulieren, dass $\texttt{R}$ die richtige Lösung ausspuckt?
+
+::: {.content-hidden unless-meta="solution"}
+### Lösung
+
+(a) Um numerische Singularität zu prüfen, müssen wir eine Norm wählen. Zum Beispiel:
+
+-   $\| \cdot \|_2$-Norm: $$\| \bA \|_2 = \sqrt{\lambda_{\max}(\bA^T\bA)}, \quad  \| \bA^{-1}\|_2 = \sqrt{\lambda_{\max}(\bA^{-T}\bA^{-1})}.$$ 
+Da $\eps < 1$ erhält man
+$$ \bA^\top \bA =  \begin{pmatrix} 1 & 0 \\ 0 & \eps^2 \end{pmatrix} \implies \lambda_1 = 1, \lambda_2 = \eps^2 \implies \| \bA \|_2 = 1.$$ 
+$$\bA^{-1} = \begin{pmatrix} 1 & 0 \\ 0 & 1/\eps \end{pmatrix}, \bA^{-T} \bA^{-1} = \begin{pmatrix} 1 & 0 \\ 0 & 1/\eps^2 \end{pmatrix}  \implies \lambda_1 = 1, \lambda_2 = 1/\eps^2 \implies \| \bA^{-1} \|_2 = 1/\eps.$$ 
+Somit $\kappa(\bA) = 1/\eps$ und $\kappa(\bA) \delta = \delta/\eps \ge 1$ für $\eps \le \delta$.
+
+-   $\| \cdot \|_F$-Norm: $\| A \|_F = \sqrt{1 + \eps^2}, \quad \| A^{-1}\|_F =  \sqrt{1 + 1/\eps^2}$.
+Somit $$ \kappa (\bA) = \sqrt{(1 + \eps^2)( 1 + 1/\eps^2)} = \sqrt{1 + 1/\eps^2 + 1 + \eps^2} = \sqrt{\frac{2 \eps^2 + \eps^4 + 1}{\eps^2}} \ge \frac{1}{\eps}. $$
+Für $\eps \le \delta$ ist also $\kappa(\bA) \delta \ge \delta/\eps \ge 1$.
+
+(b) Zum Beispiel $\eps = \eps_{mach} / 2 \approx 10^{-16}$:
+
+```{r, error=TRUE}
+eps <- 1e-16
+A <- rbind(c(1, 1), c(0, eps))
+solve(A, c(1, 1))
+```
+
+$\texttt{R}$ erkennt also, dass die Matrix (das "System") numerisch singulär ist und wirft einen Fehler.
+
+(c) Auch hier erzeugt `solve(A, b)` einen Fehler. Wir können das LGS $(\bA \mid \bb)$ durch elementare Zeilenoperationen umformen, ohne dabei die Lösung zu ändern. Teilen wir die zweite Zeile des Systems durch $\eps$, erhalten wir \begin{align*}
+(\bA \mid \bb) = 
+\begin{roweqmat}{rr|r}
+1 & 0 & 1 \\
+0 & \eps & \eps
+\end{roweqmat} \stackrel{(II) / \eps}\sim \begin{roweqmat}{rr|r}
+1 & 0 & 1 \\
+0 & 1 & 1
+\end{roweqmat} = (\bU \mid \bc).
+\end{align*} <!-- wobei die Matrix $U$ wohlkonditioniert ist ($\kappa_2(U) = 1$). -->
+
+```{r}
+U <- diag(c(1, 1))
+solve(U, c(1, 1))
+```
+:::
