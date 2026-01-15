@@ -15,7 +15,7 @@ A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU
 ## Installation
 
 ```bash
-quarto add fabianegli/quarto-exam
+quarto add fabian-s/quarto-exam
 ```
 
 Or clone the repository and copy `_extensions/exam/` to your project.
@@ -150,7 +150,7 @@ The template generates:
 
 Based on the [Monash Exam Template](https://github.com/quarto-monash/exam) by Rob J Hyndman.
 
-Adapted for LMU Munich by Fabian Scheipl with assistance from Claude.
+Adapted for LMU Munich by Claude on behalf of Fabian Scheipl.
 
 ## License
 
