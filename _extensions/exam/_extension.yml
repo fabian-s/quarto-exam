@@ -19,7 +19,8 @@ contributes:
         - marginparsep=2mm
       block-headings: false
       filters:
-        - aufgabe.lua
+        - at: pre-ast
+          path: aufgabe.lua
       include-in-header:
         - packages.tex
       include-before-body:

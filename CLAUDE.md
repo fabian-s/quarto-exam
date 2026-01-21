@@ -8,7 +8,7 @@ This is a **Quarto extension** that provides an exam template for LMU Munich. It
 - Cover page (Deckblatt) with student information fields and points table
 - Customizable instructions page (Hinweise) via included child document
 - Automatic exercise numbering via `## Aufgabe` headings
-- Points tracking with `\punkte{n}` command
+- **Auto-points tracking**: points are derived from markers (`\p`, `\hp`, `\pp`) in solution blocks
 - Solution toggle via `-M solution:true/false`
 - Supplementary pages (Zusatzblätter) for extra work space
 
@@ -34,10 +34,10 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 
 **Extension files (`_extensions/exam/`):**
 - `_extension.yml` - Extension configuration (paper size, fonts, margins, filters)
-- `packages.tex` - LaTeX preamble: `\punkte` command for points, `\leerzeile` for blank lines
+- `packages.tex` - LaTeX preamble: point marker commands (`\p`, `\hp`, `\pp`), auto-points display
 - `deckblatt.tex` - Cover page (page 1): student fields and auto-generated points table
 - `zusatzblatt.tex` - Supplementary pages at document end
-- `aufgabe.lua` - Lua filter that formats `## Aufgabe` headings with auto-numbering and generates points table
+- `aufgabe.lua` - Lua filter that formats `## Aufgabe` headings, counts point markers in solutions, generates points table
 
 **User-provided files:**
 - `hinweise.qmd` - Instructions page (page 2): exam rules. Copy and customize for each exam, include with `{{< include hinweise.qmd >}}`
@@ -53,11 +53,22 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 
 **Exam content commands:**
 - `## Aufgabe X` - Creates a new exercise with automatic numbering
-- `\punkte{n}` - Displays points: "(n Punkte)"
+- `::: {.solution}` - Solution block (hidden in exam mode, shown in solution mode)
+- `\p` - Point marker: 1 point (use inside solution blocks, works in text and math)
+- `\hp` - Point marker: 0.5 points (half point)
+- `\pp` - Point marker: 2 points (double point)
 - `\antwortfeld{height}` - Answer box with 5mm grid (height in cm). Only shown in exam mode, hidden in solution mode.
 - `\anzahlaufgaben{}` - Total number of exercises (auto-calculated)
-- `\gesamtpunkte{}` - Total points (auto-calculated)
-- `::: {.content-hidden unless-meta="solution"}` - Conditional solution block
+- `\gesamtpunkte{}` - Total points (auto-calculated from markers)
+
+**Auto-points system:**
+- Points are automatically calculated by summing `\p` (1pt), `\hp` (0.5pt), `\pp` (2pt) markers **inside solution blocks only**
+- Markers outside solution blocks are ignored for point calculation
+- Markers work both in text mode and inside math environments
+- In solution mode: markers display as red superscripts like `^[1P]`
+- In exam mode: markers are invisible
+- Exercise totals shown flush right on the same line as the exercise header
+- Points table on cover page auto-generated from these markers
 
 ## Example Document Structure
 
@@ -76,16 +87,23 @@ format: exam-pdf
 
 ## Aufgabe 1
 
-Question text here. \punkte{10}
+Question text here.
 
 \antwortfeld{4}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-Solution text here.
+First step of the solution. \p
+Second step worth half a point. \hp
+Final answer worth double points. \pp
+Point markers also work in math: $x = y \p$
 :::
 ```
+
+In this example, Aufgabe 1 gets 4.5 points (1 + 0.5 + 2 + 1), displayed as "(4.5 Punkte)" flush right on the header line.
+
+**Legacy syntax:** The old `::: {.content-hidden unless-meta="solution"}` syntax still works and is equivalent to `::: {.solution}`.
 
 ## Reference Files
 

@@ -15,48 +15,62 @@ format: exam-pdf
 Zeigen Sie, dass der folgende Ausdruck der Maximum-Likelihood-Schätzer für die Varianz einer Normalverteilung ist:
 $$ \hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i-\bar{x})^2$$
 
-\punkte{10}
-
 \antwortfeld{4}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-Die Likelihood-Funktion für eine Normalverteilung ist:
+Die Likelihood-Funktion für eine Normalverteilung ist: \p
 $$L(\mu, \sigma^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i-\mu)^2}{2\sigma^2}\right)$$
 
-Nach Ableitung und Nullsetzen erhält man den MLE-Schätzer.
+Log-Likelihood aufstellen: \p
+$$\ell(\mu, \sigma^2) = -\frac{n}{2}\ln(2\pi) - \frac{n}{2}\ln(\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n (x_i-\mu)^2$$
+
+Ableitung nach $\sigma^2$ und Nullsetzen: \pp
+$$\frac{\partial \ell}{\partial \sigma^2} = -\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n (x_i-\mu)^2 = 0$$
+
+Auflösen nach $\hat{\sigma}^2$: \pp
+
+Mit $\hat{\mu} = \bar{x}$ folgt $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2$. \pp
+
+Nachweis dass Maximum (zweite Ableitung negativ): \pp
 :::
 
 ## Aufgabe 2
 
 Seien $\mathbf{A}, \mathbf{B}$ Matrizen mit passenden Dimensionen. Berechne möglichst gute Schranken für die relativen Konditionszahlen.
 
-a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$ \punkte{4}
+a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
 \antwortfeld{2.5}
 
-::: {.content-hidden unless-meta="solution"}
-**Lösung:** Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$.
+::: {.solution}
+**Lösung:**
+
+Ansatz mit Definition der Konditionszahl: \p
+Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$. \pp
 :::
 
-b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$ \punkte{4}
+b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
 
 \antwortfeld{2.5}
 
-::: {.content-hidden unless-meta="solution"}
-**Lösung:** Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\|$.
+::: {.solution}
+**Lösung:**
+
+Produktregel anwenden: \p
+Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\|$. \pp
 :::
 
-c) Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert? \punkte{4}
+c) Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert?
 
 \antwortfeld{3}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-Das Problem a) ist schlecht konditioniert wenn $\mathbf{A} \approx -\mathbf{B}$.
-Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$.
+Das Problem a) ist schlecht konditioniert wenn $\mathbf{A} \approx -\mathbf{B}$ (Auslöschung). \pp
+Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$ (fast singuläres Produkt). \pp
 :::
 
 ## Aufgabe 3
@@ -64,29 +78,44 @@ Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$.
 Berechnen Sie das bestimmte Integral:
 $$\int_0^{\pi} \sin^2(x) \, dx$$
 
-\punkte{8}
-
 \antwortfeld{5}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-Mit der Identität $\sin^2(x) = \frac{1 - \cos(2x)}{2}$:
-$$\int_0^{\pi} \sin^2(x) \, dx = \int_0^{\pi} \frac{1 - \cos(2x)}{2} \, dx = \frac{\pi}{2}$$
+Trigonometrische Identität verwenden:
+$$\sin^2(x) = \frac{1 - \cos(2x)}{2} \p$$
+
+Integral aufteilen:
+$$\int_0^{\pi} \sin^2(x) \, dx = \int_0^{\pi} \frac{1 - \cos(2x)}{2} \, dx \p$$
+
+Stammfunktion bestimmen:
+$$= \frac{1}{2}\left[x - \frac{\sin(2x)}{2}\right]_0^{\pi} \pp$$
+
+Grenzen einsetzen:
+$$= \frac{1}{2}\left(\pi - 0 - 0 + 0\right) = \frac{\pi}{2} \pp$$
+
+Ergebnis: $\frac{\pi}{2}$ \pp
 :::
 
 ## Aufgabe 4
 
 Erklären Sie den Unterschied zwischen **Kondition** eines Problems und **Stabilität** eines Algorithmus.
 
-\punkte{10}
-
 \antwortfeld{6}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-**Kondition** ist eine Eigenschaft des mathematischen Problems selbst und beschreibt, wie empfindlich die Lösung auf kleine Änderungen der Eingabedaten reagiert.
+**Kondition** ist eine Eigenschaft des mathematischen Problems selbst: \pp
 
-**Stabilität** ist eine Eigenschaft des Algorithmus und beschreibt, wie sich Rundungsfehler während der Berechnung fortpflanzen.
+- Beschreibt, wie empfindlich die Lösung auf kleine Änderungen der Eingabedaten reagiert \p
+- Unabhängig vom verwendeten Algorithmus \hp
+- Gemessen durch die Konditionszahl $\kappa$ \hp
+
+**Stabilität** ist eine Eigenschaft des Algorithmus: \pp
+
+- Beschreibt, wie sich Rundungsfehler während der Berechnung fortpflanzen \p
+- Unterscheidung: vorwärts-stabil vs. rückwärts-stabil \hp
+- Ein stabiler Algorithmus für ein gut konditioniertes Problem liefert genaue Ergebnisse \hp
 :::

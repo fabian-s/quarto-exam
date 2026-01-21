@@ -4,22 +4,29 @@
 \usepackage{lastpage}
 \usepackage{tikz}
 
-%% Solution mode toggle - will be set by Lua filter
-\newif\ifsolution
-\solutionfalse
+%% Solution mode toggle - defined and set by Lua filter in header-includes
+%% \ifsolution is defined by the filter before this file is included
 
-%% Metadata commands - defaults, will be redefined by Lua filter
-\newcommand{\examsemester}{}
-\newcommand{\examveranstaltung}{}
-\newcommand{\examveranstaltungkurz}{}  % Short name for header
-\newcommand{\examdozent}{}
-\newcommand{\examdatum}{}
-\newcommand{\examdauer}{}
-\newcommand{\anzahlaufgaben}{0}  % Total number of exercises
-\newcommand{\gesamtpunkte}{0}    % Total points across all exercises
+%% Metadata commands - defined by Lua filter (providecommand as fallback)
+\providecommand{\examsemester}{}
+\providecommand{\examveranstaltung}{}
+\providecommand{\examveranstaltungkurz}{}
+\providecommand{\examdozent}{}
+\providecommand{\examdatum}{}
+\providecommand{\examdauer}{}
+\providecommand{\anzahlaufgaben}{0}
+\providecommand{\gesamtpunkte}{0}
 
 %% Points command - displays points in parentheses
 \newcommand{\punkte}[1]{\hfill\textbf{(#1 Punkte)}}
+
+%% Point markers for grading - only visible in solution mode
+%% \p = 1 point, \hp = 0.5 points (half), \pp = 2 points (double)
+%% These work both in text mode and math mode
+\newcommand{\pmark}[1]{\ifsolution\ifmmode\text{\textsuperscript{\textcolor{red}{\tiny[#1]}}}\else\textsuperscript{\textcolor{red}{\tiny[#1]}}\fi\fi}
+\newcommand{\p}{\pmark{1P}}
+\newcommand{\hp}{\pmark{½P}}
+\newcommand{\pp}{\pmark{2P}}
 
 %% Answer field with 5mm grid (only shown when solution=false)
 %% Usage: \antwortfeld{height in cm}, e.g., \antwortfeld{4}
@@ -41,8 +48,8 @@
   \par\vspace{#1\baselineskip}%
 }
 
-%% Points table - will be redefined by Lua filter
-\newcommand{\punktetabelle}{%
+%% Points table - defined by Lua filter (providecommand as fallback)
+\providecommand{\punktetabelle}{%
 \begin{tabular}{|l|c|c|}
   \hline
   & mögliche Punkte & erreichte Punkte \\
