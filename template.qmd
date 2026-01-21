@@ -15,9 +15,7 @@ format: exam-pdf
 Zeigen Sie, dass der folgende Ausdruck der Maximum-Likelihood-Schätzer für die Varianz einer Normalverteilung ist:
 $$ \hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i-\bar{x})^2$$
 
-\antwortfeld{4}
-
-::: {.solution}
+::: {.solution box=4}
 **Lösung:**
 
 Die Likelihood-Funktion für eine Normalverteilung ist: \p
@@ -44,9 +42,7 @@ Seien $\mathbf{A}, \mathbf{B}$ Matrizen mit passenden Dimensionen. Berechne mög
 
 $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
-\antwortfeld{2.5}
-
-::: {.solution}
+::: {.solution box=2.5}
 **Lösung:**
 
 Ansatz mit Definition der Konditionszahl: \p
@@ -57,9 +53,7 @@ Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$. \pp
 
 $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
 
-\antwortfeld{2.5}
-
-::: {.solution}
+::: {.solution box=2.5}
 **Lösung:**
 
 Produktregel anwenden: \p
@@ -70,9 +64,7 @@ Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\
 
 Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert?
 
-\antwortfeld{3}
-
-::: {.solution}
+::: {.solution box=3}
 **Lösung:**
 
 Das Problem a) ist schlecht konditioniert wenn $\mathbf{A} \approx -\mathbf{B}$ (Auslöschung). \pp
@@ -84,9 +76,7 @@ Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$ 
 Berechnen Sie das bestimmte Integral:
 $$\int_0^{\pi} \sin^2(x) \, dx$$
 
-\antwortfeld{5}
-
-::: {.solution}
+::: {.solution box=5}
 **Lösung:**
 
 Trigonometrische Identität verwenden:
@@ -107,8 +97,6 @@ Ergebnis: $\frac{\pi}{2}$ \pp
 ## Kondition und Stabilität
 
 Erklären Sie den Unterschied zwischen **Kondition** eines Problems und **Stabilität** eines Algorithmus.
-
-\antwortfeld{6}
 
 ::: {.solution}
 **Lösung:**

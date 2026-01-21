@@ -195,8 +195,61 @@ local function count_points_in_div(div)
   return count_points_in_blocks(div.content)
 end
 
+-- Estimate height (in cm) needed for content
+-- This is a rough estimate: ~0.5cm per line, ~80 chars per line
+local function estimate_content_height(blocks)
+  local total_chars = 0
+  local extra_lines = 0
+
+  for _, block in ipairs(blocks) do
+    if block.t == "Para" or block.t == "Plain" then
+      local text = pandoc.utils.stringify(block.content)
+      total_chars = total_chars + #text
+      extra_lines = extra_lines + 1  -- paragraph spacing
+    elseif block.t == "Math" or (block.t == "Para" and block.content[1] and block.content[1].t == "Math") then
+      extra_lines = extra_lines + 2  -- display math takes more space
+    elseif block.t == "BulletList" or block.t == "OrderedList" then
+      for _, item in ipairs(block.content) do
+        local text = pandoc.utils.stringify(item)
+        total_chars = total_chars + #text
+        extra_lines = extra_lines + 0.5  -- list item spacing
+      end
+    elseif block.t == "RawBlock" then
+      -- LaTeX blocks - estimate based on content
+      extra_lines = extra_lines + 2
+    elseif block.t == "Div" then
+      -- Nested div - recurse
+      local nested = estimate_content_height(block.content)
+      extra_lines = extra_lines + nested / 0.5
+    else
+      -- Other blocks
+      local text = pandoc.utils.stringify(block)
+      total_chars = total_chars + #text
+    end
+  end
+
+  -- ~80 chars per line, ~0.5cm per line
+  local text_lines = total_chars / 80
+  local total_lines = text_lines + extra_lines
+
+  -- Convert to cm, minimum 2cm
+  local height = math.max(2, total_lines * 0.5)
+  -- Round to nearest 0.5
+  height = math.floor(height * 2 + 0.5) / 2
+
+  return height
+end
+
 -- Main filter function - processes entire document
 function Pandoc(doc)
+  -- Check solution mode early (needed for div processing)
+  local solution_mode = doc.meta.solution
+  local is_solution_mode = false
+  if solution_mode then
+    local sol_str = pandoc.utils.stringify(solution_mode)
+    is_solution_mode = (sol_str == "true")
+  end
+
   -- State tracking
   local exercise_count = 0
   local current_exercise = 0
@@ -274,17 +327,11 @@ function Pandoc(doc)
       pending_subexercise = nil
     end
 
-    -- Transform .solution divs to content-hidden divs and count points
+    -- Transform .solution divs and handle answer fields
     if block.t == "Div" then
       local is_solution = block.classes:includes("solution") or is_solution_div(block)
 
-      if block.classes:includes("solution") then
-        -- Transform to content-hidden syntax for Quarto processing
-        block.classes = pandoc.List({"content-hidden"})
-        block.attributes["unless-meta"] = "solution"
-      end
-
-      -- Count points in solution divs
+      -- Count points in solution divs (always, regardless of mode)
       if is_solution and current_exercise > 0 then
         local pts = count_points_in_div(block)
         if current_subexercise > 0 then
@@ -297,16 +344,46 @@ function Pandoc(doc)
         end
       end
 
-      -- Wrap solution divs in tcolorbox for visual styling
+      -- Handle solution divs based on mode
       if is_solution then
-        local new_content = {
-          pandoc.RawBlock("latex", "\\begin{solutionbox}")
-        }
-        for _, el in ipairs(block.content) do
-          table.insert(new_content, el)
+        local box_attr = block.attributes["box"]
+
+        if is_solution_mode then
+          -- Solution mode: show solution with tcolorbox styling
+          -- Remove the box attribute so it doesn't appear in output
+          block.attributes["box"] = nil
+
+          local new_content = {
+            pandoc.RawBlock("latex", "\\begin{solutionbox}")
+          }
+          for _, el in ipairs(block.content) do
+            table.insert(new_content, el)
+          end
+          table.insert(new_content, pandoc.RawBlock("latex", "\\end{solutionbox}"))
+          block.content = new_content
+
+          -- Transform to content-hidden for Quarto (will be shown because solution:true)
+          block.classes = pandoc.List({"content-hidden"})
+          block.attributes["unless-meta"] = "solution"
+        else
+          -- Exam mode: replace solution with antwortfeld
+          local height
+          if box_attr then
+            -- Use specified height
+            height = box_attr
+          else
+            -- Estimate height from content
+            height = estimate_content_height(block.content)
+          end
+
+          -- Replace div content with antwortfeld
+          block.content = {
+            pandoc.RawBlock("latex", string.format("\\antwortfeld{%s}", height))
+          }
+          -- Remove classes and attributes - this is now just an answer field
+          block.classes = pandoc.List({})
+          block.attributes = {}
         end
-        table.insert(new_content, pandoc.RawBlock("latex", "\\end{solutionbox}"))
-        block.content = new_content
       end
     end
 

@@ -10,13 +10,14 @@ This is a **Quarto extension** that provides an exam template for LMU Munich. It
 - **Auto-numbered exercises** via `##` headings (with optional titles)
 - **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
 - **Auto-points tracking**: points derived from markers (`\p`, `\hp`, `\pp`) in solution blocks
+- **Auto-generated answer fields**: solution blocks automatically become answer grids in exam mode
 - Solution toggle via `-M solution:true/false`
 - Supplementary pages (Zusatzblätter) for extra work space
 
 ## Rendering Commands
 
 ```bash
-# Render exam sheet (solutions hidden)
+# Render exam sheet (solutions hidden, answer grids shown)
 quarto render template.qmd -M solution:false
 
 # Render solution sheet (solutions visible)
@@ -27,7 +28,7 @@ quarto render template.qmd -M solution:false -o exam.pdf
 quarto render template.qmd -M solution:true -o solutions.pdf
 ```
 
-Requirements: Quarto >= 1.4.0, pdfLaTeX with packages: fancyhdr, lastpage
+Requirements: Quarto >= 1.4.0, pdfLaTeX with packages: fancyhdr, lastpage, tcolorbox
 
 ## Architecture
 
@@ -35,10 +36,10 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 
 **Extension files (`_extensions/exam/`):**
 - `_extension.yml` - Extension configuration (paper size, fonts, margins, filters)
-- `packages.tex` - LaTeX preamble: point marker commands (`\p`, `\hp`, `\pp`), auto-points display
+- `packages.tex` - LaTeX preamble: point marker commands (`\p`, `\hp`, `\pp`), answer field, solution box styling
 - `deckblatt.tex` - Cover page (page 1): student fields and auto-generated points table
 - `zusatzblatt.tex` - Supplementary pages at document end
-- `aufgabe.lua` - Lua filter that auto-numbers `##`/`###` headings, counts point markers in solutions, generates points table
+- `aufgabe.lua` - Lua filter that auto-numbers `##`/`###` headings, counts point markers in solutions, generates points table, handles answer fields
 
 **User-provided files:**
 - `hinweise.qmd` - Instructions page (page 2): exam rules. Copy and customize for each exam, include with `{{< include hinweise.qmd >}}`
@@ -55,13 +56,36 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 **Exam content commands:**
 - `##` or `## Title` - Creates a new exercise, auto-numbered 1, 2, 3...
 - `###` - Creates a new sub-exercise, auto-numbered a), b), c)... (resets with each exercise)
-- `::: {.solution}` - Solution block (hidden in exam mode, shown in solution mode)
+- `::: {.solution}` - Solution block with auto-sized answer field in exam mode
+- `::: {.solution box=X}` - Solution block with X cm answer field in exam mode
 - `\p` - Point marker: 1 point (use inside solution blocks, works in text and math)
 - `\hp` - Point marker: 0.5 points (half point)
 - `\pp` - Point marker: 2 points (double point)
-- `\antwortfeld{height}` - Answer box with 5mm grid (height in cm). Only shown in exam mode, hidden in solution mode.
 - `\anzahlaufgaben{}` - Total number of exercises (auto-calculated)
 - `\gesamtpunkte{}` - Total points (auto-calculated from markers)
+
+## Solution Blocks and Answer Fields
+
+Solution blocks serve dual purpose:
+- **In solution mode** (`-M solution:true`): Display solution with styled box (gray left border)
+- **In exam mode** (`-M solution:false`): Display answer field with 5mm grid
+
+**Syntax:**
+```markdown
+::: {.solution box=4}
+Solution content here...
+:::
+```
+
+**The `box` attribute:**
+- `box=X` - Creates answer field of X cm height in exam mode
+- If omitted, height is auto-estimated from solution content (~0.5cm per line)
+
+**Auto-estimation:**
+- Counts characters and blocks in solution
+- Roughly 80 characters per line, 0.5cm per line
+- Minimum 2cm, rounded to nearest 0.5cm
+- Works well for typical solutions; use explicit `box=X` for precise control
 
 ## Exercise and Sub-Exercise Syntax
 
@@ -106,9 +130,7 @@ format: exam-pdf
 
 Question text for exercise without sub-exercises.
 
-\antwortfeld{4}
-
-::: {.solution}
+::: {.solution box=4}
 **Lösung:**
 
 First step of the solution. \p
@@ -124,9 +146,7 @@ Introduction text for exercise with sub-exercises.
 
 $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
-\antwortfeld{2.5}
-
-::: {.solution}
+::: {.solution box=2.5}
 **Lösung:**
 
 Solution for part a). \p \pp
@@ -136,32 +156,30 @@ Solution for part a). \p \pp
 
 $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
 
-\antwortfeld{2.5}
-
 ::: {.solution}
 **Lösung:**
 
-Solution for part b). \p \pp
+Solution for part b) - height auto-estimated. \p \pp
 :::
 ```
 
-**Renders as:**
+**Renders as (exam mode):**
 ```
 Aufgabe 1: Maximum-Likelihood-Schätzer                    [X Punkte]
 Question text...
-[answer field]
+[4cm answer grid]
 
 Aufgabe 2: Konditionszahlen                               [Y Punkte]
 Introduction text...
 
 a) f(A) = A + B                                           [3 Punkte]
-[answer field]
+[2.5cm answer grid]
 
 b) f(A) = A B                                             [3 Punkte]
-[answer field]
+[auto-sized answer grid]
 ```
 
-**Legacy syntax:** The old `## Aufgabe X` and `::: {.content-hidden unless-meta="solution"}` syntax still works for backward compatibility.
+**Legacy syntax:** The old `## Aufgabe X`, `::: {.content-hidden unless-meta="solution"}`, and standalone `\antwortfeld{X}` syntax still work for backward compatibility.
 
 ## Reference Files
 

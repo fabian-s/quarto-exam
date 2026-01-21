@@ -1,6 +1,6 @@
 # LMU Munich Exam Template
 
-A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, conditional solution display, and grid-lined answer boxes.
+A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, and automatic answer field generation.
 
 ## Features
 
@@ -9,8 +9,8 @@ A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU
 - **Auto-numbered exercises** via `##` headings (with optional titles)
 - **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
 - **Auto-points tracking** from `\p`, `\hp`, `\pp` markers in solution blocks
-- **Answer boxes** with 5mm grid pattern (`\antwortfeld{height}`)
-- **Styled solution blocks** with visual left border
+- **Auto-generated answer fields** - solution blocks become grid boxes in exam mode
+- **Styled solution blocks** with visual left border in solution mode
 - **Solution toggle** - render exam sheet or solution sheet from same source
 - **Supplementary pages (Zusatzblätter)** for extra work space
 
@@ -43,9 +43,7 @@ format: exam-pdf
 
 Question text here.
 
-\antwortfeld{4}
-
-::: {.solution}
+::: {.solution box=4}
 **Lösung:**
 
 First step of the solution. \p
@@ -61,9 +59,7 @@ Introduction text for exercise with sub-exercises.
 
 $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
-\antwortfeld{2.5}
-
-::: {.solution}
+::: {.solution box=2.5}
 Solution for part a). \p \pp
 :::
 
@@ -71,22 +67,39 @@ Solution for part a). \p \pp
 
 $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
 
-\antwortfeld{2.5}
-
 ::: {.solution}
-Solution for part b). \p \pp
+Solution for part b) - answer field auto-sized. \p \pp
 :::
 ```
 
 ### Rendering
 
 ```bash
-# Exam sheet (no solutions, with answer grids)
+# Exam sheet (answer grids, no solutions)
 quarto render exam.qmd -M solution:false -o exam.pdf
 
-# Solution sheet (with solutions, no grids)
+# Solution sheet (solutions shown, no grids)
 quarto render exam.qmd -M solution:true -o solutions.pdf
 ```
+
+### Solution Blocks and Answer Fields
+
+Solution blocks serve dual purpose:
+- **Exam mode** (`-M solution:false`): Replaced with 5mm grid answer field
+- **Solution mode** (`-M solution:true`): Displayed with styled box
+
+**The `box` attribute:**
+```markdown
+::: {.solution box=4}    # 4cm answer field in exam mode
+...
+:::
+
+::: {.solution}          # Auto-sized based on content
+...
+:::
+```
+
+If `box` is omitted, the height is auto-estimated from the solution content (~0.5cm per line, minimum 2cm).
 
 ### Exercise and Sub-Exercise Syntax
 
@@ -132,9 +145,9 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 |---------|-------------|
 | `##` or `## Title` | Creates auto-numbered exercise heading |
 | `###` | Creates auto-numbered sub-exercise (a, b, c...) |
-| `::: {.solution}` | Solution block (hidden in exam, shown in solutions) |
+| `::: {.solution}` | Solution block with auto-sized answer field |
+| `::: {.solution box=X}` | Solution block with X cm answer field |
 | `\p`, `\hp`, `\pp` | Point markers (1, 0.5, 2 points) |
-| `\antwortfeld{h}` | Answer box with 5mm grid, height in cm (exam only) |
 | `\anzahlaufgaben{}` | Total number of exercises (auto-calculated) |
 | `\gesamtpunkte{}` | Total points (auto-calculated) |
 
