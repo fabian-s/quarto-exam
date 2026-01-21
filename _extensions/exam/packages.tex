@@ -3,6 +3,22 @@
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{tikz}
+\usepackage[most]{tcolorbox}
+
+%% Solution box style - dark gray left border
+\newtcolorbox{solutionbox}{
+  blanker,
+  left=4mm,
+  borderline west={3pt}{0pt}{gray!50},
+  before skip=0.5\baselineskip,
+  after skip=0.5\baselineskip,
+  boxsep=2mm,
+  arc=0pt,
+  outer arc=0pt,
+  top=2mm,
+  bottom=2mm,
+  right=2mm,
+}
 
 %% Solution mode toggle - defined and set by Lua filter in header-includes
 %% \ifsolution is defined by the filter before this file is included

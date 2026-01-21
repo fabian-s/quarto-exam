@@ -10,7 +10,7 @@ format: exam-pdf
 
 {{< include hinweise.qmd >}}
 
-## Aufgabe 1
+## Maximum-Likelihood-Schätzer
 
 Zeigen Sie, dass der folgende Ausdruck der Maximum-Likelihood-Schätzer für die Varianz einer Normalverteilung ist:
 $$ \hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i-\bar{x})^2$$
@@ -36,11 +36,13 @@ Mit $\hat{\mu} = \bar{x}$ folgt $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n (x_i -
 Nachweis dass Maximum (zweite Ableitung negativ): \pp
 :::
 
-## Aufgabe 2
+## Konditionszahlen
 
 Seien $\mathbf{A}, \mathbf{B}$ Matrizen mit passenden Dimensionen. Berechne möglichst gute Schranken für die relativen Konditionszahlen.
 
-a) $f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
+###
+
+$f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
 \antwortfeld{2.5}
 
@@ -51,7 +53,9 @@ Ansatz mit Definition der Konditionszahl: \p
 Es gilt $\kappa_{rel} = \|\mathbf{A}\| / \|\mathbf{A} + \mathbf{B}\|$. \pp
 :::
 
-b) $f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
+###
+
+$f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
 
 \antwortfeld{2.5}
 
@@ -62,7 +66,9 @@ Produktregel anwenden: \p
 Es gilt $\kappa_{rel} \le \|\mathbf{A}\|\|\mathbf{B}\| / \|\mathbf{A}\mathbf{B}\|$. \pp
 :::
 
-c) Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert?
+###
+
+Für welche $\mathbf{A}, \mathbf{B}$ sind die Probleme schlecht konditioniert?
 
 \antwortfeld{3}
 
@@ -73,7 +79,7 @@ Das Problem a) ist schlecht konditioniert wenn $\mathbf{A} \approx -\mathbf{B}$ 
 Das Problem b) ist schlecht konditioniert wenn $\mathbf{A}\mathbf{B} \approx 0$ (fast singuläres Produkt). \pp
 :::
 
-## Aufgabe 3
+## Integralrechnung
 
 Berechnen Sie das bestimmte Integral:
 $$\int_0^{\pi} \sin^2(x) \, dx$$
@@ -98,7 +104,7 @@ $$= \frac{1}{2}\left(\pi - 0 - 0 + 0\right) = \frac{\pi}{2} \pp$$
 Ergebnis: $\frac{\pi}{2}$ \pp
 :::
 
-## Aufgabe 4
+## Kondition und Stabilität
 
 Erklären Sie den Unterschied zwischen **Kondition** eines Problems und **Stabilität** eines Algorithmus.
 

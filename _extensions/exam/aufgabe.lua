@@ -1,5 +1,6 @@
 -- aufgabe.lua - Lua filter for LMU Exam template
 -- Handles exercise header formatting, metadata injection, and auto-points tracking
+-- Supports auto-numbered exercises (##) and sub-exercises (###)
 
 -- Point values for marker commands
 local point_values = {
@@ -30,6 +31,11 @@ local function format_points(pts)
   else
     return string.format("%.1f", pts)
   end
+end
+
+-- Convert number to letter (1=a, 2=b, etc.)
+local function num_to_letter(n)
+  return string.char(string.byte('a') + n - 1)
 end
 
 -- Generate points table LaTeX
@@ -191,44 +197,87 @@ end
 
 -- Main filter function - processes entire document
 function Pandoc(doc)
+  -- State tracking
   local exercise_count = 0
   local current_exercise = 0
-  local exercise_points = {}
-  local exercise_header_indices = {}  -- Track where exercise headers are
+  local current_subexercise = 0  -- 0 means no sub-exercise active
 
-  -- First pass: identify exercises and count points in solution blocks
+  -- Data structures for points
+  local exercise_points = {}           -- Total points per exercise
+  local subexercise_points = {}        -- Points per sub-exercise: subexercise_points[ex][sub] = pts
+  local has_subexercises = {}          -- Track which exercises have sub-exercises
+
+  -- Track positions for formatting
+  local exercise_header_indices = {}   -- block index -> exercise number
+  local subexercise_indices = {}       -- block index -> {exercise, subexercise}
+  local subexercise_para_indices = {}  -- block index -> {exercise, subexercise} for the paragraph after ###
+
+  -- First pass: identify exercises, sub-exercises, and count points
   local new_blocks = {}
+  local pending_subexercise = nil  -- Track if we just saw a ### header
+
   for i, block in ipairs(doc.blocks) do
-    -- Check if this is an Aufgabe header
+    -- Check if this is an exercise header (##)
     if block.t == "Header" and block.level == 2 then
-      local text = pandoc.utils.stringify(block.content)
-      if text:match("^Aufgabe") then
-        exercise_count = exercise_count + 1
-        current_exercise = exercise_count
-        exercise_points[current_exercise] = 0
+      exercise_count = exercise_count + 1
+      current_exercise = exercise_count
+      current_subexercise = 0  -- Reset sub-exercise counter
+      exercise_points[current_exercise] = 0
+      subexercise_points[current_exercise] = {}
+      has_subexercises[current_exercise] = false
+      pending_subexercise = nil
 
-        -- Extract title after "Aufgabe X" if present
-        local title = text:gsub("^Aufgabe%s*%d*%s*", "")
+      -- Extract title (everything in the header content)
+      local title = pandoc.utils.stringify(block.content)
+      -- Remove "Aufgabe X" prefix if present (for backward compatibility)
+      title = title:gsub("^Aufgabe%s*%d*%s*:?%s*", "")
+      title = title:match("^%s*(.-)%s*$") or ""  -- Trim whitespace
 
-        -- Create formatted header content
-        local header_text
-        if title and title ~= "" then
-          header_text = string.format("Aufgabe %d: %s", exercise_count, title)
-        else
-          header_text = string.format("Aufgabe %d", exercise_count)
-        end
+      -- Store original title for later formatting
+      block.attributes["exam-title"] = title
 
-        block.content = {pandoc.Str(header_text)}
+      table.insert(new_blocks, block)
+      exercise_header_indices[#new_blocks] = current_exercise
+      goto continue
+    end
 
-        -- Mark position for points injection
+    -- Check if this is a sub-exercise header (###)
+    if block.t == "Header" and block.level == 3 then
+      if current_exercise > 0 then
+        current_subexercise = current_subexercise + 1
+        has_subexercises[current_exercise] = true
+        subexercise_points[current_exercise][current_subexercise] = 0
+
+        -- Mark that we're expecting a paragraph to follow this header
+        pending_subexercise = {current_exercise, current_subexercise}
+
+        -- Store the header position (we'll remove it later)
         table.insert(new_blocks, block)
-        exercise_header_indices[#new_blocks] = current_exercise
-        goto continue
+        subexercise_indices[#new_blocks] = {current_exercise, current_subexercise}
+      else
+        table.insert(new_blocks, block)
       end
+      goto continue
+    end
+
+    -- Check if this is the paragraph following a ### header
+    if pending_subexercise and (block.t == "Para" or block.t == "Plain") then
+      -- This paragraph becomes the sub-exercise question
+      subexercise_para_indices[#new_blocks + 1] = pending_subexercise
+      pending_subexercise = nil
+      table.insert(new_blocks, block)
+      goto continue
+    end
+
+    -- Clear pending subexercise if we hit a non-paragraph block
+    if pending_subexercise and block.t ~= "Para" and block.t ~= "Plain" then
+      pending_subexercise = nil
     end
 
     -- Transform .solution divs to content-hidden divs and count points
     if block.t == "Div" then
+      local is_solution = block.classes:includes("solution") or is_solution_div(block)
+
       if block.classes:includes("solution") then
         -- Transform to content-hidden syntax for Quarto processing
         block.classes = pandoc.List({"content-hidden"})
@@ -236,9 +285,28 @@ function Pandoc(doc)
       end
 
       -- Count points in solution divs
-      if is_solution_div(block) and current_exercise > 0 then
+      if is_solution and current_exercise > 0 then
         local pts = count_points_in_div(block)
-        exercise_points[current_exercise] = exercise_points[current_exercise] + pts
+        if current_subexercise > 0 then
+          -- Add points to current sub-exercise
+          subexercise_points[current_exercise][current_subexercise] =
+            subexercise_points[current_exercise][current_subexercise] + pts
+        else
+          -- Add points directly to exercise (no sub-exercises)
+          exercise_points[current_exercise] = exercise_points[current_exercise] + pts
+        end
+      end
+
+      -- Wrap solution divs in tcolorbox for visual styling
+      if is_solution then
+        local new_content = {
+          pandoc.RawBlock("latex", "\\begin{solutionbox}")
+        }
+        for _, el in ipairs(block.content) do
+          table.insert(new_content, el)
+        end
+        table.insert(new_content, pandoc.RawBlock("latex", "\\end{solutionbox}"))
+        block.content = new_content
       end
     end
 
@@ -246,20 +314,100 @@ function Pandoc(doc)
     ::continue::
   end
 
-  -- Second pass: add points to exercise headers (flush right on same line)
-  for i, block in ipairs(new_blocks) do
-    local ex_num = exercise_header_indices[i]
-    if ex_num then
-      local pts = exercise_points[ex_num] or 0
-      if pts > 0 then
-        -- Add points to header content: "Aufgabe N \hfill (X Punkte)"
-        local points_str = string.format("\\hfill (%s Punkte)", format_points(pts))
-        table.insert(block.content, pandoc.RawInline("latex", points_str))
+  -- Calculate total exercise points from sub-exercises
+  for ex_num, has_subs in pairs(has_subexercises) do
+    if has_subs then
+      local total = 0
+      for _, pts in pairs(subexercise_points[ex_num]) do
+        total = total + pts
       end
+      exercise_points[ex_num] = total
     end
   end
 
-  doc.blocks = new_blocks
+  -- Second pass: format headers with points
+  local final_blocks = {}
+  local skip_next = false
+
+  for i, block in ipairs(new_blocks) do
+    if skip_next then
+      skip_next = false
+      goto continue2
+    end
+
+    -- Format exercise headers
+    local ex_num = exercise_header_indices[i]
+    if ex_num then
+      local title = block.attributes["exam-title"] or ""
+      block.attributes["exam-title"] = nil  -- Clean up
+
+      -- Create header text
+      local header_text
+      if title ~= "" then
+        header_text = string.format("Aufgabe %d: %s", ex_num, title)
+      else
+        header_text = string.format("Aufgabe %d", ex_num)
+      end
+
+      -- Add points (normalsize, flush right)
+      local pts = exercise_points[ex_num] or 0
+      local points_str = ""
+      if pts > 0 then
+        points_str = string.format("{\\normalsize\\hfill [%s Punkte]}", format_points(pts))
+      end
+
+      block.content = {
+        pandoc.Str(header_text),
+        pandoc.RawInline("latex", points_str)
+      }
+      table.insert(final_blocks, block)
+      goto continue2
+    end
+
+    -- Handle sub-exercise headers (### - to be removed)
+    local sub_info = subexercise_indices[i]
+    if sub_info then
+      -- Don't add the ### header to output, just skip it
+      -- The following paragraph will be formatted with the label
+      goto continue2
+    end
+
+    -- Format sub-exercise paragraphs (add "a)" prefix and points)
+    local sub_para_info = subexercise_para_indices[i]
+    if sub_para_info then
+      local ex = sub_para_info[1]
+      local sub = sub_para_info[2]
+      local pts = subexercise_points[ex][sub] or 0
+      local letter = num_to_letter(sub)
+
+      -- Prepend letter label
+      local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} ", letter))
+
+      -- Append points (flush right)
+      local points_suffix = ""
+      if pts > 0 then
+        points_suffix = string.format(" \\hfill [%s Punkte]", format_points(pts))
+      end
+      local points_inline = pandoc.RawInline("latex", points_suffix)
+
+      -- Build new content
+      local new_content = {label}
+      for _, el in ipairs(block.content) do
+        table.insert(new_content, el)
+      end
+      table.insert(new_content, points_inline)
+
+      block.content = new_content
+      table.insert(final_blocks, block)
+      goto continue2
+    end
+
+    -- Regular block, just add it
+    table.insert(final_blocks, block)
+    ::continue2::
+  end
+
+  doc.blocks = final_blocks
 
   -- Inject metadata and points table
   local semester = meta_to_string(doc.meta.semester)

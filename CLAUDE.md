@@ -7,8 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Quarto extension** that provides an exam template for LMU Munich. It generates professional PDF exam papers (Klausuren) with:
 - Cover page (Deckblatt) with student information fields and points table
 - Customizable instructions page (Hinweise) via included child document
-- Automatic exercise numbering via `## Aufgabe` headings
-- **Auto-points tracking**: points are derived from markers (`\p`, `\hp`, `\pp`) in solution blocks
+- **Auto-numbered exercises** via `##` headings (with optional titles)
+- **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
+- **Auto-points tracking**: points derived from markers (`\p`, `\hp`, `\pp`) in solution blocks
 - Solution toggle via `-M solution:true/false`
 - Supplementary pages (Zusatzblätter) for extra work space
 
@@ -37,7 +38,7 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 - `packages.tex` - LaTeX preamble: point marker commands (`\p`, `\hp`, `\pp`), auto-points display
 - `deckblatt.tex` - Cover page (page 1): student fields and auto-generated points table
 - `zusatzblatt.tex` - Supplementary pages at document end
-- `aufgabe.lua` - Lua filter that formats `## Aufgabe` headings, counts point markers in solutions, generates points table
+- `aufgabe.lua` - Lua filter that auto-numbers `##`/`###` headings, counts point markers in solutions, generates points table
 
 **User-provided files:**
 - `hinweise.qmd` - Instructions page (page 2): exam rules. Copy and customize for each exam, include with `{{< include hinweise.qmd >}}`
@@ -52,7 +53,8 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 - `format: exam-pdf` - Activates this extension
 
 **Exam content commands:**
-- `## Aufgabe X` - Creates a new exercise with automatic numbering
+- `##` or `## Title` - Creates a new exercise, auto-numbered 1, 2, 3...
+- `###` - Creates a new sub-exercise, auto-numbered a), b), c)... (resets with each exercise)
 - `::: {.solution}` - Solution block (hidden in exam mode, shown in solution mode)
 - `\p` - Point marker: 1 point (use inside solution blocks, works in text and math)
 - `\hp` - Point marker: 0.5 points (half point)
@@ -61,14 +63,29 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 - `\anzahlaufgaben{}` - Total number of exercises (auto-calculated)
 - `\gesamtpunkte{}` - Total points (auto-calculated from markers)
 
-**Auto-points system:**
-- Points are automatically calculated by summing `\p` (1pt), `\hp` (0.5pt), `\pp` (2pt) markers **inside solution blocks only**
+## Exercise and Sub-Exercise Syntax
+
+**Exercise headers (`##`):**
+- Any `##` heading becomes an exercise, auto-numbered 1, 2, 3...
+- Title is optional:
+  - `## ` or `##` alone → "Aufgabe 1"
+  - `## Some Title` → "Aufgabe 1: Some Title"
+- Points shown flush right as `[X Punkte]` in normalsize font
+
+**Sub-exercise headers (`###`):**
+- `###` on its own line denotes a sub-exercise, auto-numbered a), b), c)...
+- The paragraph following `###` becomes the question text
+- Format: `a) question text [X Punkte]`
+- Sub-exercise numbering resets with each new exercise
+
+**Point calculation:**
+- Exercise total = sum of all sub-exercise points (or direct points if no sub-exercises)
+- Sub-exercise points = sum of `\p`, `\hp`, `\pp` markers in its solution blocks
 - Markers outside solution blocks are ignored for point calculation
 - Markers work both in text mode and inside math environments
 - In solution mode: markers display as red superscripts like `^[1P]`
 - In exam mode: markers are invisible
-- Exercise totals shown flush right on the same line as the exercise header
-- Points table on cover page auto-generated from these markers
+- Points table on cover page auto-generated from exercise totals
 
 ## Example Document Structure
 
@@ -85,9 +102,9 @@ format: exam-pdf
 
 {{< include hinweise.qmd >}}
 
-## Aufgabe 1
+## Maximum-Likelihood-Schätzer
 
-Question text here.
+Question text for exercise without sub-exercises.
 
 \antwortfeld{4}
 
@@ -97,13 +114,54 @@ Question text here.
 First step of the solution. \p
 Second step worth half a point. \hp
 Final answer worth double points. \pp
-Point markers also work in math: $x = y \p$
+:::
+
+## Konditionszahlen
+
+Introduction text for exercise with sub-exercises.
+
+###
+
+$f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
+
+\antwortfeld{2.5}
+
+::: {.solution}
+**Lösung:**
+
+Solution for part a). \p \pp
+:::
+
+###
+
+$f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
+
+\antwortfeld{2.5}
+
+::: {.solution}
+**Lösung:**
+
+Solution for part b). \p \pp
 :::
 ```
 
-In this example, Aufgabe 1 gets 4.5 points (1 + 0.5 + 2 + 1), displayed as "(4.5 Punkte)" flush right on the header line.
+**Renders as:**
+```
+Aufgabe 1: Maximum-Likelihood-Schätzer                    [X Punkte]
+Question text...
+[answer field]
 
-**Legacy syntax:** The old `::: {.content-hidden unless-meta="solution"}` syntax still works and is equivalent to `::: {.solution}`.
+Aufgabe 2: Konditionszahlen                               [Y Punkte]
+Introduction text...
+
+a) f(A) = A + B                                           [3 Punkte]
+[answer field]
+
+b) f(A) = A B                                             [3 Punkte]
+[answer field]
+```
+
+**Legacy syntax:** The old `## Aufgabe X` and `::: {.content-hidden unless-meta="solution"}` syntax still works for backward compatibility.
 
 ## Reference Files
 
