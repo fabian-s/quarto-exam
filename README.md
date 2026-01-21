@@ -82,6 +82,18 @@ quarto render exam.qmd -M solution:false -o exam.pdf
 quarto render exam.qmd -M solution:true -o solutions.pdf
 ```
 
+#### Exam Mode (answer grids, solutions hidden)
+
+| Cover Page | Content Page |
+|:----------:|:------------:|
+| ![Exam Cover](images/exam-cover.png) | ![Exam Content](images/exam-content.png) |
+
+#### Solution Mode (solutions shown)
+
+| Cover Page | Content Page |
+|:----------:|:------------:|
+| ![Solutions Cover](images/solutions-cover.png) | ![Solutions Content](images/solutions-content.png) |
+
 ### Solution Blocks and Answer Fields
 
 Solution blocks serve dual purpose:
