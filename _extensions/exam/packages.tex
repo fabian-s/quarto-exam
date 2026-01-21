@@ -45,23 +45,33 @@
 \newcommand{\pp}{\pmark{2P}}
 
 %% Answer field with 5mm grid (only shown when solution=false)
+%% Uses breakable tcolorbox so it can continue onto next page
 %% Usage: \antwortfeld{height in cm}, e.g., \antwortfeld{4}
 \newcommand{\antwortfeld}[1]{%
   \ifsolution
     \vspace{0.5\baselineskip}% minimal space in solution mode
   \else
     \par\vspace{0.3\baselineskip}%
-    \begin{tikzpicture}
-      \draw[step=5mm, gray!40, thin] (0,0) grid (\textwidth, #1);
-      \draw[gray!60] (0,0) rectangle (\textwidth, #1);
-    \end{tikzpicture}%
+    \begin{tcolorbox}[
+      breakable,
+      enhanced,
+      colback=white,
+      colframe=gray!60,
+      boxrule=0.4pt,
+      arc=0pt,
+      outer arc=0pt,
+      left=0pt, right=0pt, top=0pt, bottom=0pt,
+      boxsep=0pt,
+      underlay={
+        \begin{tcbclipinterior}
+          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+        \end{tcbclipinterior}
+      },
+    ]
+    \vspace*{#1 cm}
+    \end{tcolorbox}%
     \par\vspace{0.3\baselineskip}%
   \fi
-}
-
-%% Legacy command - kept for compatibility
-\newcommand{\leerzeile}[1][1]{%
-  \par\vspace{#1\baselineskip}%
 }
 
 %% Points table - defined by Lua filter (providecommand as fallback)

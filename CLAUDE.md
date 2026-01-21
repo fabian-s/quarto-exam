@@ -179,8 +179,6 @@ b) f(A) = A B                                             [3 Punkte]
 [auto-sized answer grid]
 ```
 
-**Legacy syntax:** The old `## Aufgabe X`, `::: {.content-hidden unless-meta="solution"}`, and standalone `\antwortfeld{X}` syntax still work for backward compatibility.
-
 ## Reference Files
 
 The `attic/` directory contains the original LaTeX implementation:

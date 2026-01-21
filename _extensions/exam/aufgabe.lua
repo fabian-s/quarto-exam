@@ -78,15 +78,9 @@ local function generate_points_table(exercise_points)
   return table_latex, total
 end
 
--- Check if a Div is a solution block (supports both syntaxes)
+-- Check if a Div is a solution block
 local function is_solution_div(div)
-  -- New simple syntax: ::: {.solution}
-  if div.classes:includes("solution") then
-    return true
-  end
-  -- Legacy syntax: ::: {.content-hidden unless-meta="solution"}
-  return div.classes:includes("content-hidden") and
-         div.attributes["unless-meta"] == "solution"
+  return div.classes:includes("solution")
 end
 
 -- Count point markers in text (LaTeX raw content)
@@ -282,8 +276,6 @@ function Pandoc(doc)
 
       -- Extract title (everything in the header content)
       local title = pandoc.utils.stringify(block.content)
-      -- Remove "Aufgabe X" prefix if present (for backward compatibility)
-      title = title:gsub("^Aufgabe%s*%d*%s*:?%s*", "")
       title = title:match("^%s*(.-)%s*$") or ""  -- Trim whitespace
 
       -- Store original title for later formatting
