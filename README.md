@@ -1,14 +1,16 @@
 # LMU Munich Exam Template
 
-A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic points tracking, conditional solution display, and grid-lined answer boxes.
+A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, conditional solution display, and grid-lined answer boxes.
 
 ## Features
 
 - **Cover page (Deckblatt)** with student information fields and auto-generated points table
 - **Customizable instructions page (Hinweise)** via included child document
-- **Automatic exercise numbering** via `## Aufgabe` headings
-- **Points tracking** with `\punkte{n}` - automatically summed per exercise and in total
+- **Auto-numbered exercises** via `##` headings (with optional titles)
+- **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
+- **Auto-points tracking** from `\p`, `\hp`, `\pp` markers in solution blocks
 - **Answer boxes** with 5mm grid pattern (`\antwortfeld{height}`)
+- **Styled solution blocks** with visual left border
 - **Solution toggle** - render exam sheet or solution sheet from same source
 - **Supplementary pages (Zusatzblätter)** for extra work space
 
@@ -37,28 +39,42 @@ format: exam-pdf
 
 {{< include hinweise.qmd >}}
 
-## Aufgabe 1
+## Maximum-Likelihood-Schätzer
 
-Question text here. \punkte{10}
+Question text here.
 
 \antwortfeld{4}
 
-::: {.content-hidden unless-meta="solution"}
+::: {.solution}
 **Lösung:**
 
-Solution text here.
+First step of the solution. \p
+Second step worth half a point. \hp
+Final answer worth double points. \pp
 :::
 
-## Aufgabe 2
+## Konditionszahlen
 
-Another question. \punkte{8}
+Introduction text for exercise with sub-exercises.
 
-\antwortfeld{3}
+###
 
-::: {.content-hidden unless-meta="solution"}
-**Lösung:**
+$f(\mathbf{A}) = \mathbf{A} + \mathbf{B}$
 
-Another solution.
+\antwortfeld{2.5}
+
+::: {.solution}
+Solution for part a). \p \pp
+:::
+
+###
+
+$f(\mathbf{A}) = \mathbf{A} \mathbf{B}$
+
+\antwortfeld{2.5}
+
+::: {.solution}
+Solution for part b). \p \pp
 :::
 ```
 
@@ -71,6 +87,32 @@ quarto render exam.qmd -M solution:false -o exam.pdf
 # Solution sheet (with solutions, no grids)
 quarto render exam.qmd -M solution:true -o solutions.pdf
 ```
+
+### Exercise and Sub-Exercise Syntax
+
+**Exercises (`##`):**
+- Any `##` heading becomes an exercise, auto-numbered 1, 2, 3...
+- Title is optional: `##` alone → "Aufgabe 1", `## Title` → "Aufgabe 1: Title"
+- Points shown flush right as `[X Punkte]`
+
+**Sub-exercises (`###`):**
+- `###` on its own line creates a sub-exercise, auto-numbered a), b), c)...
+- The paragraph following `###` becomes the question text
+- Sub-exercise numbering resets with each new exercise
+
+### Points System
+
+Points are automatically calculated from markers inside `::: {.solution}` blocks:
+
+| Marker | Points | Display (in solution mode) |
+|--------|--------|---------------------------|
+| `\p`   | 1      | ^[1P]                     |
+| `\hp`  | 0.5    | ^[½P]                     |
+| `\pp`  | 2      | ^[2P]                     |
+
+- Markers work in both text and math mode
+- Exercise points = sum of sub-exercise points (or direct points if no sub-exercises)
+- Points table on cover page is auto-generated
 
 ### YAML Front Matter Fields
 
@@ -88,14 +130,13 @@ quarto render exam.qmd -M solution:true -o solutions.pdf
 
 | Command | Description |
 |---------|-------------|
-| `## Aufgabe X` | Creates numbered exercise heading |
-| `\punkte{n}` | Displays "(n Punkte)" right-aligned |
+| `##` or `## Title` | Creates auto-numbered exercise heading |
+| `###` | Creates auto-numbered sub-exercise (a, b, c...) |
+| `::: {.solution}` | Solution block (hidden in exam, shown in solutions) |
+| `\p`, `\hp`, `\pp` | Point markers (1, 0.5, 2 points) |
 | `\antwortfeld{h}` | Answer box with 5mm grid, height in cm (exam only) |
 | `\anzahlaufgaben{}` | Total number of exercises (auto-calculated) |
 | `\gesamtpunkte{}` | Total points (auto-calculated) |
-| `\examdauer{}` | Exam duration from YAML |
-| `\examsemester{}` | Semester from YAML |
-| `\examveranstaltung{}` | Course name from YAML |
 
 ### Customizing Instructions (hinweise.qmd)
 
@@ -125,7 +166,7 @@ Create a `hinweise.qmd` file in your project directory. This is included after t
 your-exam/
 ├── _extensions/exam/     # The extension (copy from this repo)
 │   ├── _extension.yml
-│   ├── aufgabe.lua       # Lua filter for points tracking
+│   ├── aufgabe.lua       # Lua filter for auto-numbering and points
 │   ├── packages.tex      # LaTeX preamble
 │   ├── deckblatt.tex     # Cover page template
 │   └── zusatzblatt.tex   # Supplementary pages
@@ -136,14 +177,14 @@ your-exam/
 ## Requirements
 
 - Quarto >= 1.4.0
-- pdfLaTeX with packages: fancyhdr, lastpage, tikz
+- pdfLaTeX with packages: fancyhdr, lastpage, tikz, tcolorbox
 
 ## Example Output
 
 The template generates:
 1. **Page 1**: Cover page with student fields and points table
 2. **Page 2**: Exam instructions (from hinweise.qmd)
-3. **Pages 3+**: Exam questions with answer grids (exam) or solutions (solution sheet)
+3. **Pages 3+**: Exam questions with answer grids (exam) or styled solutions (solution sheet)
 4. **Final pages**: Supplementary pages for additional work
 
 ## Credits
