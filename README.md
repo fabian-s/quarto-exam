@@ -101,6 +101,8 @@ Solution blocks serve dual purpose:
 
 If `box` is omitted, the height is auto-estimated from the solution content (~0.5cm per line, minimum 2cm).
 
+Answer fields automatically break across pages if they're too tall to fit.
+
 ### Exercise and Sub-Exercise Syntax
 
 **Exercises (`##`):**

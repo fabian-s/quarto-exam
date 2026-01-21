@@ -47,6 +47,7 @@
 %% Answer field with 5mm grid (only shown when solution=false)
 %% Uses breakable tcolorbox so it can continue onto next page
 %% Usage: \antwortfeld{height in cm}, e.g., \antwortfeld{4}
+\newcount\antwortfeldloop
 \newcommand{\antwortfeld}[1]{%
   \ifsolution
     \vspace{0.5\baselineskip}% minimal space in solution mode
@@ -54,21 +55,37 @@
     \par\vspace{0.3\baselineskip}%
     \begin{tcolorbox}[
       breakable,
-      enhanced,
+      enhanced jigsaw,
       colback=white,
-      colframe=gray!60,
+      colframe=gray!40,
       boxrule=0.4pt,
       arc=0pt,
       outer arc=0pt,
       left=0pt, right=0pt, top=0pt, bottom=0pt,
       boxsep=0pt,
-      underlay={
+      pad at break=0pt,
+      underlay unbroken and first={
+        \begin{tcbclipinterior}
+          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+        \end{tcbclipinterior}
+      },
+      underlay middle={
+        \begin{tcbclipinterior}
+          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+        \end{tcbclipinterior}
+      },
+      underlay last={
         \begin{tcbclipinterior}
           \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
         \end{tcbclipinterior}
       },
     ]
-    \vspace*{#1 cm}
+    % Insert 1cm tall paragraphs to allow page breaks
+    \antwortfeldloop=0
+    \loop\ifnum\antwortfeldloop<#1
+      \strut\par\vspace{0.65cm}%
+      \advance\antwortfeldloop by 1
+    \repeat
     \end{tcolorbox}%
     \par\vspace{0.3\baselineskip}%
   \fi

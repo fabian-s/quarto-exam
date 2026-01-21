@@ -86,6 +86,7 @@ Solution content here...
 - Roughly 80 characters per line, 0.5cm per line
 - Minimum 2cm, rounded to nearest 0.5cm
 - Works well for typical solutions; use explicit `box=X` for precise control
+- Answer fields automatically break across pages if too tall to fit
 
 ## Exercise and Sub-Exercise Syntax
 
