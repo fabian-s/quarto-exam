@@ -1,18 +1,20 @@
 # LMU Munich Exam Template
 
-A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, and automatic answer field generation.
+A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, automatic answer field generation, and bilingual support (German/English).
 
 ## Features
 
-- **Cover page (Deckblatt)** with student information fields and auto-generated points table
-- **Customizable instructions page (Hinweise)** via included child document
+- **Cover page** with student information fields and auto-generated points table
+- **Customizable instructions page** via included child document
 - **Auto-numbered exercises** via `##` headings (with optional titles)
 - **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
 - **Auto-points tracking** from `\p`, `\hp`, `\pp` markers in solution blocks
-- **Auto-generated answer fields** - solution blocks become grid boxes in exam mode
+- **Auto-generated answer fields** - solution blocks become boxes in exam mode
+- **Grid or blank answer fields** - `grid-paper: true/false` for 5mm grid or blank boxes
 - **Styled solution blocks** with visual left border in solution mode
 - **Solution toggle** - render exam sheet or solution sheet from same source
-- **Supplementary pages (Zusatzblätter)** for extra work space
+- **Bilingual support** - German (`exam-lang: de`) or English (`exam-lang: en`)
+- **Configurable extra pages** - set number of blank/grid pages at end
 
 ## Installation
 
@@ -28,30 +30,33 @@ Or clone the repository and copy `_extensions/exam/` to your project.
 
 ```markdown
 ---
-semester: "Wintersemester 2024/25"
-veranstaltung: "Course Name"
-veranstaltung-kurz: "CN"  # optional, for page headers
-dozent: "Prof. Dr. Name"
-datum: "15.02.2025"
-dauer: 90
+semester: "Winter 2024/25"
+course: "Advanced Statistical Methods"
+course-short: "ASM"
+instructor: "Prof. Dr. Name"
+date: "15.02.2025"
+duration: 90
+exam-lang: en
+grid-paper: true
+extra-pages: 2
 format: exam-pdf
 ---
 
-{{< include hinweise.qmd >}}
+{{< include instructions.qmd >}}
 
-## Maximum-Likelihood-Schätzer
+## Maximum Likelihood Estimator
 
 Question text here.
 
 ::: {.solution box=4}
-**Lösung:**
+**Solution:**
 
 First step of the solution. \p
 Second step worth half a point. \hp
 Final answer worth double points. \pp
 :::
 
-## Konditionszahlen
+## Condition Numbers
 
 Introduction text for exercise with sub-exercises.
 
@@ -75,29 +80,30 @@ Solution for part b) - answer field auto-sized. \p \pp
 ### Rendering
 
 ```bash
-# Exam sheet (answer grids, no solutions)
+# Exam sheet (answer boxes, no solutions)
 quarto render exam.qmd -M solution:false -o exam.pdf
 
-# Solution sheet (solutions shown, no grids)
+# Solution sheet (solutions shown, no boxes)
 quarto render exam.qmd -M solution:true -o solutions.pdf
+
+# Blank answer boxes (no grid lines)
+quarto render exam.qmd -M solution:false -M grid-paper:false -o exam.pdf
+
+# English exam
+quarto render exam.qmd -M solution:false -M exam-lang:en -o exam-en.pdf
+
+# No extra pages at end
+quarto render exam.qmd -M solution:false -M extra-pages:0 -o exam.pdf
 ```
 
-#### Exam Mode (answer grids, solutions hidden)
-
-| Cover Page | Content Page |
-|:----------:|:------------:|
-| ![Exam Cover](images/exam-cover.png) | ![Exam Content](images/exam-content.png) |
-
-#### Solution Mode (solutions shown)
-
-| Cover Page | Content Page |
-|:----------:|:------------:|
-| ![Solutions Cover](images/solutions-cover.png) | ![Solutions Content](images/solutions-content.png) |
+| Cover Page | Exam Mode | Solution Mode |
+|:----------:|:---------:|:-------------:|
+| ![Cover](images/exam-cover.png) | ![Exam](images/exam-content.png) | ![Solutions](images/solutions-content.png) |
 
 ### Solution Blocks and Answer Fields
 
 Solution blocks serve dual purpose:
-- **Exam mode** (`-M solution:false`): Replaced with 5mm grid answer field
+- **Exam mode** (`-M solution:false`): Replaced with answer field box
 - **Solution mode** (`-M solution:true`): Displayed with styled box
 
 **The `box` attribute:**
@@ -113,14 +119,21 @@ Solution blocks serve dual purpose:
 
 If `box` is omitted, the height is auto-estimated from the solution content (~0.5cm per line, minimum 2cm).
 
+**Grid vs Blank:**
+- `grid-paper: true` (default) - Answer fields have 5mm grid lines
+- `grid-paper: false` - Answer fields are blank (just grey border)
+- Extra pages at end match the grid setting
+
 Answer fields automatically break across pages if they're too tall to fit.
+
+**Disabling answer fields:** Set `answerfields: false` in front matter to omit all answer boxes (useful when students answer on separate paper).
 
 ### Exercise and Sub-Exercise Syntax
 
 **Exercises (`##`):**
 - Any `##` heading becomes an exercise, auto-numbered 1, 2, 3...
-- Title is optional: `##` alone → "Aufgabe 1", `## Title` → "Aufgabe 1: Title"
-- Points shown flush right as `[X Punkte]`
+- Title is optional: `##` alone → "Exercise 1", `## Title` → "Exercise 1: Title"
+- Points shown flush right as `[X Points]`
 
 **Sub-exercises (`###`):**
 - `###` on its own line creates a sub-exercise, auto-numbered a), b), c)...
@@ -143,15 +156,31 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 
 ### YAML Front Matter Fields
 
-| Field | Description | Required |
-|-------|-------------|----------|
-| `semester` | e.g., "Wintersemester 2024/25" | Yes |
-| `veranstaltung` | Full course title | Yes |
-| `veranstaltung-kurz` | Short name for headers (e.g., "FMM") | No |
-| `dozent` | Instructor name(s) | Yes |
-| `datum` | Exam date | Yes |
-| `dauer` | Duration in minutes | Yes |
-| `format` | Must be `exam-pdf` | Yes |
+| Field | Description | Default |
+|-------|-------------|---------|
+| `semester` | e.g., "Winter 2024/25" | required |
+| `course` | Full course title | required |
+| `course-short` | Short name for headers | falls back to `course` |
+| `instructor` | Instructor name(s) | required |
+| `date` | Exam date | required |
+| `duration` | Duration in minutes | required |
+| `exam-lang` | `de` or `en` | `de` |
+| `grid-paper` | Grid lines in answer fields | `true` |
+| `extra-pages` | Extra pages at end | `2` |
+| `answerfields` | Show answer boxes | `true` |
+| `format` | Must be `exam-pdf` | required |
+
+### Language Support
+
+Set `exam-lang: en` for English or `exam-lang: de` (default) for German.
+
+This affects:
+- Cover page layout and text
+- Exercise labels ("Aufgabe" vs "Exercise")
+- Points labels ("Punkte" vs "Points")
+- Points table headers
+- Page header/footer
+- Extra page text
 
 ### Commands
 
@@ -162,25 +191,37 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 | `::: {.solution}` | Solution block with auto-sized answer field |
 | `::: {.solution box=X}` | Solution block with X cm answer field |
 | `\p`, `\hp`, `\pp` | Point markers (1, 0.5, 2 points) |
-| `\anzahlaufgaben{}` | Total number of exercises (auto-calculated) |
-| `\gesamtpunkte{}` | Total points (auto-calculated) |
+| `\examexercisecount{}` | Total number of exercises |
+| `\examtotalpoints{}` | Total points |
 
-### Customizing Instructions (hinweise.qmd)
+### LaTeX Macros
 
-Create a `hinweise.qmd` file in your project directory. This is included after the cover page and can reference auto-calculated values:
+| Macro | Description |
+|-------|-------------|
+| `\examsemester` | Semester value |
+| `\examcourse` | Full course name |
+| `\examcourseshort` | Short course name |
+| `\examinstructor` | Instructor name |
+| `\examdate` | Exam date |
+| `\examduration` | Duration in minutes |
+| `\examexercisecount` | Number of exercises |
+| `\examtotalpoints` | Total points |
+| `\exampointstable` | Points table |
+| `\examanswerfield{X}` | Answer field of X cm height |
+
+### Customizing Instructions
+
+Create `hinweise.qmd` (German) or `instructions.qmd` (English) in your project:
 
 ```markdown
 \thispagestyle{empty}
 
-\begin{center}
-\Large\textbf{Hinweise zur Klausur}\\[0.3cm]
-\rule{\textwidth}{0.4mm}
-\end{center}
+# Exam Instructions {.unnumbered .unlisted}
 
-\vspace{0.5cm}
+---
 
-- Die Klausur umfasst **\anzahlaufgaben{} Aufgaben** mit insgesamt **\gesamtpunkte{} Punkten**.
-- Die Bearbeitungszeit beträgt **\examdauer{} Minuten**.
+- This exam consists of **\examexercisecount{} exercises** with **\examtotalpoints{} points**.
+- Time limit: **\examduration{} minutes**.
 - ... (your exam rules)
 
 \vfill
@@ -195,9 +236,10 @@ your-exam/
 │   ├── _extension.yml
 │   ├── aufgabe.lua       # Lua filter for auto-numbering and points
 │   ├── packages.tex      # LaTeX preamble
-│   ├── deckblatt.tex     # Cover page template
-│   └── zusatzblatt.tex   # Supplementary pages
-├── hinweise.qmd          # Your exam instructions (customize this)
+│   ├── deckblatt.tex     # German cover page
+│   └── coverpage.tex     # English cover page
+├── hinweise.qmd          # German exam instructions
+├── instructions.qmd      # English exam instructions
 └── exam.qmd              # Your exam document
 ```
 
@@ -210,9 +252,9 @@ your-exam/
 
 The template generates:
 1. **Page 1**: Cover page with student fields and points table
-2. **Page 2**: Exam instructions (from hinweise.qmd)
-3. **Pages 3+**: Exam questions with answer grids (exam) or styled solutions (solution sheet)
-4. **Final pages**: Supplementary pages for additional work
+2. **Page 2**: Exam instructions (from hinweise.qmd or instructions.qmd)
+3. **Pages 3+**: Exam questions with answer boxes (exam) or styled solutions (solution sheet)
+4. **Final pages**: Extra pages for additional work (grid or blank, configurable)
 
 ## Credits
 

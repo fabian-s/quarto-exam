@@ -1,10 +1,13 @@
 ---
 semester: "Wintersemester 2024/25"
-veranstaltung: "Fortgeschrittene mathematische Methoden in der Statistik"
-veranstaltung-kurz: "FMM"
-dozent: "Prof. Dr. Example, Dr. Assistant"
-datum: "15.02.2025"
-dauer: 90
+course: "Fortgeschrittene mathematische Methoden in der Statistik"
+course-short: "FMM"
+instructor: "Prof. Dr. Example, Dr. Assistant"
+date: "15.02.2025"
+duration: 90
+exam-lang: de
+grid-paper: true
+extra-pages: 2
 format: exam-pdf
 ---
 

@@ -3,18 +3,15 @@
 
 \thispagestyle{empty}
 
-\begin{center}
-\Large\textbf{Hinweise zur Klausur}\\[0.3cm]
-\rule{\textwidth}{0.4mm}
-\end{center}
+# Hinweise zur Klausur {.unnumbered .unlisted}
 
-\vspace{0.5cm}
+---
 
 - **Überprüfen Sie, ob Ihre Angabe vollständig ist.**
-- Die Klausur umfasst **\anzahlaufgaben{} Aufgaben** mit insgesamt **\gesamtpunkte{} Punkten**. Alle Aufgaben sind zu bearbeiten.
+- Die Klausur umfasst **\examexercisecount{} Aufgaben** mit insgesamt **\examtotalpoints{} Punkten**. Alle Aufgaben sind zu bearbeiten.
 - Füllen Sie bitte das Formular auf der ersten Seite umgehend aus. Schreiben Sie bitte leserlich.
 - Halten Sie für die Kontrolle bitte einen Lichtbildausweis und Ihren Studierendenausweis bereit.
-- Die Bearbeitungszeit beträgt **\examdauer{} Minuten**.
+- Die Bearbeitungszeit beträgt **\examduration{} Minuten**.
 - Verwenden Sie für die Bearbeitung ausschließlich die Ihnen zur Verfügung gestellten Papierbögen. Kennzeichnen Sie jedes zur Abgabe vorgesehene Blatt mit Namen und Matrikelnummer.
 - Alle Lösungen müssen nachvollziehbar sein. Dazu gehört auch lesbare Schrift.
 - Es dürfen nur **dokumentenechte Stifte** und keine roten Stifte verwendet werden.

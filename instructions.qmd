@@ -1,0 +1,21 @@
+<!-- Exam instructions page (English) - customize this for your exam -->
+<!-- Include in your exam with: {{< include instructions.qmd >}} -->
+
+\thispagestyle{empty}
+
+# Exam Instructions {.unnumbered .unlisted}
+
+---
+
+- **Please verify that your exam is complete.**
+- This exam consists of **\examexercisecount{} exercises** with a total of **\examtotalpoints{} points**. All exercises must be completed.
+- Please fill out the form on the first page immediately. Write legibly.
+- Please have your photo ID and student card ready for verification.
+- The time limit is **\examduration{} minutes**.
+- Use only the paper provided for your answers. Mark every sheet you submit with your name and student ID.
+- All solutions must be comprehensible. This includes legible handwriting.
+- Only **permanent ink pens** may be used (no red ink).
+- Academic dishonesty will be reported to the examination office.
+
+\vfill
+\newpage

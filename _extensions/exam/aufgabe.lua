@@ -1,4 +1,4 @@
--- aufgabe.lua - Lua filter for LMU Exam template
+-- aufgabe.lua - Lua filter for Exam template
 -- Handles exercise header formatting, metadata injection, and auto-points tracking
 -- Supports auto-numbered exercises (##) and sub-exercises (###)
 
@@ -9,12 +9,44 @@ local point_values = {
   ["\\pp"] = 2,
 }
 
+-- Language-specific strings
+local lang_strings = {
+  de = {
+    exercise = "Aufgabe",
+    points = "Punkte",
+    points_table_possible = "mögliche Punkte",
+    points_table_achieved = "erreichte Punkte",
+    points_table_sum = "Summe",
+    points_table_none = "(Keine Punkte definiert)",
+    header_left = "Klausur %s --- %s",
+    header_right = "Name:",
+    footer_page = "Seite %s von %s",
+    extra_page_title = "Zusatzblatt",
+    extra_page_reminder = "Name und Matrikelnummer nicht vergessen!",
+  },
+  en = {
+    exercise = "Exercise",
+    points = "Points",
+    points_table_possible = "possible points",
+    points_table_achieved = "points achieved",
+    points_table_sum = "Total",
+    points_table_none = "(No points defined)",
+    header_left = "Exam %s --- %s",
+    header_right = "Name:",
+    footer_page = "Page %s of %s",
+    extra_page_title = "Extra Page",
+    extra_page_reminder = "Don't forget your name and student ID!",
+  }
+}
+
 -- Helper to get metadata value as string
 local function meta_to_string(meta_value)
   if meta_value == nil then
     return ""
   elseif type(meta_value) == "string" then
     return meta_value
+  elseif type(meta_value) == "boolean" then
+    return tostring(meta_value)
   elseif meta_value.t == "MetaInlines" then
     return pandoc.utils.stringify(meta_value)
   elseif meta_value.t == "MetaString" then
@@ -22,6 +54,30 @@ local function meta_to_string(meta_value)
   else
     return pandoc.utils.stringify(meta_value)
   end
+end
+
+-- Helper to get metadata as boolean with default
+local function meta_to_bool(meta_value, default)
+  if meta_value == nil then
+    return default
+  end
+  if type(meta_value) == "boolean" then
+    return meta_value
+  end
+  local str = meta_to_string(meta_value)
+  if str == "true" then return true end
+  if str == "false" then return false end
+  return default
+end
+
+-- Helper to get metadata as number with default
+local function meta_to_number(meta_value, default)
+  if meta_value == nil then
+    return default
+  end
+  local str = meta_to_string(meta_value)
+  local num = tonumber(str)
+  return num or default
 end
 
 -- Format points for display (handles decimals nicely)
@@ -39,7 +95,8 @@ local function num_to_letter(n)
 end
 
 -- Generate points table LaTeX
-local function generate_points_table(exercise_points)
+local function generate_points_table(exercise_points, lang)
+  local strings = lang_strings[lang] or lang_strings["de"]
   local rows = {}
   local total = 0
 
@@ -54,7 +111,7 @@ local function generate_points_table(exercise_points)
   for _, num in ipairs(exercise_nums) do
     local pts = exercise_points[num]
     total = total + pts
-    table.insert(rows, string.format("  Aufgabe %d & %s & \\\\", num, format_points(pts)))
+    table.insert(rows, string.format("  %s %d & %s & \\\\", strings.exercise, num, format_points(pts)))
   end
 
   if #rows == 0 then
@@ -62,18 +119,18 @@ local function generate_points_table(exercise_points)
   end
 
   -- Build complete table
-  local table_latex = [[
+  local table_latex = string.format([[
 \begin{tabular}{|l|c|c|}
   \hline
-  & mögliche Punkte & erreichte Punkte \\
+  & %s & %s \\
   \hline
   \hline
-]] .. table.concat(rows, "\n  \\hline\n") .. [[
+]], strings.points_table_possible, strings.points_table_achieved) .. table.concat(rows, "\n  \\hline\n") .. string.format([[
 
   \hline
-  \textbf{Summe} & \textbf{]] .. format_points(total) .. [[} & \\
+  \textbf{%s} & \textbf{%s} & \\
   \hline
-\end{tabular}]]
+\end{tabular}]], strings.points_table_sum, format_points(total))
 
   return table_latex, total
 end
@@ -234,15 +291,77 @@ local function estimate_content_height(blocks)
   return height
 end
 
+-- Generate extra pages LaTeX (with optional grid)
+local function generate_extra_pages(num_pages, lang, use_grid)
+  local strings = lang_strings[lang] or lang_strings["de"]
+  local pages = {}
+
+  for i = 1, num_pages do
+    if use_grid then
+      -- Grid version: full-page grid with title and reminder
+      table.insert(pages, string.format([[
+\clearpage
+\thispagestyle{fancy}
+{\bfseries\Large %s}\par\vspace{3mm}
+\begin{tcolorbox}[
+  enhanced,
+  colback=white,
+  colframe=gray!40,
+  boxrule=0.4pt,
+  arc=0pt,
+  outer arc=0pt,
+  left=0pt, right=0pt, top=0pt, bottom=0pt,
+  boxsep=0pt,
+  height fill,
+  underlay={
+    \begin{tcbclipinterior}
+      \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+    \end{tcbclipinterior}
+  },
+]
+\vfill
+\begin{center}
+\textit{%s}
+\end{center}
+\end{tcolorbox}
+]], strings.extra_page_title, strings.extra_page_reminder))
+    else
+      -- Blank version: just title and reminder
+      table.insert(pages, string.format([[
+\clearpage
+\mbox{}\par
+{\bfseries\Large %s}
+\vfill
+\begin{center}
+\textit{%s}
+\end{center}
+]], strings.extra_page_title, strings.extra_page_reminder))
+    end
+  end
+
+  return table.concat(pages, "\n")
+end
+
 -- Main filter function - processes entire document
 function Pandoc(doc)
-  -- Check solution mode early (needed for div processing)
-  local solution_mode = doc.meta.solution
-  local is_solution_mode = false
-  if solution_mode then
-    local sol_str = pandoc.utils.stringify(solution_mode)
-    is_solution_mode = (sol_str == "true")
+  -- Get exam language (default: de)
+  local exam_lang = meta_to_string(doc.meta["exam-lang"])
+  if exam_lang == "" then
+    exam_lang = "de"
   end
+  local strings = lang_strings[exam_lang] or lang_strings["de"]
+
+  -- Get extra pages count (default: 2)
+  local extra_pages = meta_to_number(doc.meta["extra-pages"], 2)
+
+  -- Get grid setting (default: true)
+  local use_grid = meta_to_bool(doc.meta["grid-paper"], true)
+
+  -- Check solution mode early (needed for div processing)
+  local is_solution_mode = meta_to_bool(doc.meta["solution"], false)
+
+  -- Check answerfields setting (default: true)
+  local show_answerfields = meta_to_bool(doc.meta["answerfields"], true)
 
   -- State tracking
   local exercise_count = 0
@@ -358,23 +477,28 @@ function Pandoc(doc)
           block.classes = pandoc.List({"content-hidden"})
           block.attributes["unless-meta"] = "solution"
         else
-          -- Exam mode: replace solution with antwortfeld
-          local height
-          if box_attr then
-            -- Use specified height
-            height = box_attr
-          else
-            -- Estimate height from content
-            height = estimate_content_height(block.content)
-          end
+          -- Exam mode: replace solution with answer field (if enabled)
+          if show_answerfields then
+            local height
+            if box_attr then
+              -- Use specified height
+              height = box_attr
+            else
+              -- Estimate height from content
+              height = estimate_content_height(block.content)
+            end
 
-          -- Replace div content with antwortfeld
-          block.content = {
-            pandoc.RawBlock("latex", string.format("\\antwortfeld{%s}", height))
-          }
-          -- Remove classes and attributes - this is now just an answer field
-          block.classes = pandoc.List({})
-          block.attributes = {}
+            -- Replace div content with examanswerfield
+            block.content = {
+              pandoc.RawBlock("latex", string.format("\\examanswerfield{%s}", height))
+            }
+            -- Remove classes and attributes - this is now just an answer field
+            block.classes = pandoc.List({})
+            block.attributes = {}
+          else
+            -- answerfields disabled: skip this block entirely (no output)
+            goto continue
+          end
         end
       end
     end
@@ -410,19 +534,19 @@ function Pandoc(doc)
       local title = block.attributes["exam-title"] or ""
       block.attributes["exam-title"] = nil  -- Clean up
 
-      -- Create header text
+      -- Create header text (language-aware)
       local header_text
       if title ~= "" then
-        header_text = string.format("Aufgabe %d: %s", ex_num, title)
+        header_text = string.format("%s %d: %s", strings.exercise, ex_num, title)
       else
-        header_text = string.format("Aufgabe %d", ex_num)
+        header_text = string.format("%s %d", strings.exercise, ex_num)
       end
 
       -- Add points (normalsize, flush right)
       local pts = exercise_points[ex_num] or 0
       local points_str = ""
       if pts > 0 then
-        points_str = string.format("{\\normalsize\\hfill [%s Punkte]}", format_points(pts))
+        points_str = string.format("{\\normalsize\\hfill [%s %s]}", format_points(pts), strings.points)
       end
 
       block.content = {
@@ -452,10 +576,10 @@ function Pandoc(doc)
       -- Prepend letter label
       local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} ", letter))
 
-      -- Append points (flush right)
+      -- Append points (flush right, language-aware)
       local points_suffix = ""
       if pts > 0 then
-        points_suffix = string.format(" \\hfill [%s Punkte]", format_points(pts))
+        points_suffix = string.format(" \\hfill [%s %s]", format_points(pts), strings.points)
       end
       local points_inline = pandoc.RawInline("latex", points_suffix)
 
@@ -478,40 +602,35 @@ function Pandoc(doc)
 
   doc.blocks = final_blocks
 
-  -- Inject metadata and points table
+  -- Get metadata values (English YAML keys only)
   local semester = meta_to_string(doc.meta.semester)
-  local veranstaltung = meta_to_string(doc.meta.veranstaltung)
-  local veranstaltung_kurz = meta_to_string(doc.meta["veranstaltung-kurz"])
-  -- Fall back to full name if short name not provided
-  if veranstaltung_kurz == "" then
-    veranstaltung_kurz = veranstaltung
+  local course = meta_to_string(doc.meta.course)
+  local course_short = meta_to_string(doc.meta["course-short"])
+  if course_short == "" then
+    course_short = course  -- Fall back to full name
   end
-  local dozent = meta_to_string(doc.meta.dozent)
-  local datum = meta_to_string(doc.meta.datum)
-  local dauer = meta_to_string(doc.meta.dauer)
+  local instructor = meta_to_string(doc.meta.instructor)
+  local exam_date = meta_to_string(doc.meta.date)
+  local duration = meta_to_string(doc.meta.duration)
 
-  -- Check solution mode
-  local solution_mode = doc.meta.solution
-  local solution_flag = "\\solutionfalse"
-  if solution_mode then
-    local sol_str = pandoc.utils.stringify(solution_mode)
-    if sol_str == "true" then
-      solution_flag = "\\solutiontrue"
-    end
-  end
+  -- Set solution and grid flags for LaTeX
+  local solution_flag = is_solution_mode and "\\solutiontrue" or "\\solutionfalse"
+  local grid_flag = use_grid and "\\examgridtrue" or "\\examgridfalse"
 
   -- Build LaTeX command definitions for metadata
   -- Note: We define all commands here because header-includes run before include-in-header
   local latex_cmds = string.format([[
 \newif\ifsolution
 %s
+\newif\ifexamgrid
+%s
 \newcommand{\examsemester}{%s}
-\newcommand{\examveranstaltung}{%s}
-\newcommand{\examveranstaltungkurz}{%s}
-\newcommand{\examdozent}{%s}
-\newcommand{\examdatum}{%s}
-\newcommand{\examdauer}{%s}
-]], solution_flag, semester, veranstaltung, veranstaltung_kurz, dozent, datum, dauer)
+\newcommand{\examcourse}{%s}
+\newcommand{\examcourseshort}{%s}
+\newcommand{\examinstructor}{%s}
+\newcommand{\examdate}{%s}
+\newcommand{\examduration}{%s}
+]], solution_flag, grid_flag, semester, course, course_short, instructor, exam_date, duration)
 
   -- Calculate total points
   local total_points = 0
@@ -521,14 +640,34 @@ function Pandoc(doc)
 
   -- Add exercise count and total points
   latex_cmds = latex_cmds .. string.format([[
-\newcommand{\anzahlaufgaben}{%d}
-\newcommand{\gesamtpunkte}{%s}
+\newcommand{\examexercisecount}{%d}
+\newcommand{\examtotalpoints}{%s}
 ]], exercise_count, format_points(total_points))
 
   -- Add points table if we found any points
-  local points_table, _ = generate_points_table(exercise_points)
+  local points_table, _ = generate_points_table(exercise_points, exam_lang)
   if points_table then
-    latex_cmds = latex_cmds .. "\n\\newcommand{\\punktetabelle}{%\n" .. points_table .. "%\n}"
+    latex_cmds = latex_cmds .. "\n\\newcommand{\\exampointstable}{%\n" .. points_table .. "%\n}"
+  end
+
+  -- Add header/footer configuration (language-aware)
+  -- Wrap in AtBeginDocument so it runs after fancyhdr is loaded
+  local header_left = string.format(strings.header_left, "\\examsemester{}", "\\examcourseshort")
+  local footer_page = string.format(strings.footer_page, "\\thepage{}", "\\pageref{LastPage}")
+  latex_cmds = latex_cmds .. string.format([[
+
+%% Header/footer (language: %s)
+\AtBeginDocument{
+  \fancyhead[L]{\small %s}
+  \fancyhead[R]{\small %s: \rule{4cm}{0.4pt}}
+  \fancyfoot[R]{%s}
+}
+]], exam_lang, header_left, strings.header_right, footer_page)
+
+  -- Add extra pages at end of document (with grid if enabled)
+  if extra_pages > 0 then
+    local extra_pages_latex = generate_extra_pages(extra_pages, exam_lang, use_grid)
+    latex_cmds = latex_cmds .. "\n\\AtEndDocument{" .. extra_pages_latex .. "}"
   end
 
   -- Add to header-includes
@@ -541,6 +680,10 @@ function Pandoc(doc)
 
   table.insert(header_includes, pandoc.MetaBlocks({pandoc.RawBlock("latex", latex_cmds)}))
   doc.meta["header-includes"] = header_includes
+
+  -- Set include-before-body based on language
+  local coverpage_file = (exam_lang == "en") and "coverpage.tex" or "deckblatt.tex"
+  doc.meta["include-before-body"] = pandoc.MetaList({pandoc.MetaString(coverpage_file)})
 
   return doc
 end

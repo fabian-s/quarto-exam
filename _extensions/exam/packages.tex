@@ -23,18 +23,23 @@
 %% Solution mode toggle - defined and set by Lua filter in header-includes
 %% \ifsolution is defined by the filter before this file is included
 
+%% Grid mode toggle - defined by Lua filter
+%% \ifexamgrid controls whether answer fields have grid lines or are blank
+\providecommand{\examgridtrue}{\global\examgridtrue}
+\providecommand{\examgridfalse}{\global\examgridfalse}
+
 %% Metadata commands - defined by Lua filter (providecommand as fallback)
 \providecommand{\examsemester}{}
-\providecommand{\examveranstaltung}{}
-\providecommand{\examveranstaltungkurz}{}
-\providecommand{\examdozent}{}
-\providecommand{\examdatum}{}
-\providecommand{\examdauer}{}
-\providecommand{\anzahlaufgaben}{0}
-\providecommand{\gesamtpunkte}{0}
+\providecommand{\examcourse}{}
+\providecommand{\examcourseshort}{}
+\providecommand{\examinstructor}{}
+\providecommand{\examdate}{}
+\providecommand{\examduration}{}
+\providecommand{\examexercisecount}{0}
+\providecommand{\examtotalpoints}{0}
 
 %% Points command - displays points in parentheses
-\newcommand{\punkte}[1]{\hfill\textbf{(#1 Punkte)}}
+\newcommand{\exampoints}[1]{\hfill\textbf{(#1 Punkte)}}
 
 %% Point markers for grading - only visible in solution mode
 %% \p = 1 point, \hp = 0.5 points (half), \pp = 2 points (double)
@@ -44,47 +49,65 @@
 \newcommand{\hp}{\pmark{½P}}
 \newcommand{\pp}{\pmark{2P}}
 
-%% Answer field with 5mm grid (only shown when solution=false)
+%% Answer field (only shown when solution=false)
 %% Uses breakable tcolorbox so it can continue onto next page
-%% Usage: \antwortfeld{height in cm}, e.g., \antwortfeld{4}
-\newcount\antwortfeldloop
-\newcommand{\antwortfeld}[1]{%
+%% Grid lines shown only when \ifexamgrid is true
+%% Usage: \examanswerfield{height in cm}, e.g., \examanswerfield{4}
+\newcount\examanswerfieldloop
+\newcommand{\examanswerfield}[1]{%
   \ifsolution
     \vspace{0.5\baselineskip}% minimal space in solution mode
   \else
     \par\vspace{0.3\baselineskip}%
-    \begin{tcolorbox}[
-      breakable,
-      enhanced jigsaw,
-      colback=white,
-      colframe=gray!40,
-      boxrule=0.4pt,
-      arc=0pt,
-      outer arc=0pt,
-      left=0pt, right=0pt, top=0pt, bottom=0pt,
-      boxsep=0pt,
-      pad at break=0pt,
-      underlay unbroken and first={
-        \begin{tcbclipinterior}
-          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
-        \end{tcbclipinterior}
-      },
-      underlay middle={
-        \begin{tcbclipinterior}
-          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
-        \end{tcbclipinterior}
-      },
-      underlay last={
-        \begin{tcbclipinterior}
-          \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
-        \end{tcbclipinterior}
-      },
-    ]
+    \ifexamgrid
+      % Grid version
+      \begin{tcolorbox}[
+        breakable,
+        enhanced jigsaw,
+        colback=white,
+        colframe=gray!40,
+        boxrule=0.4pt,
+        arc=0pt,
+        outer arc=0pt,
+        left=0pt, right=0pt, top=0pt, bottom=0pt,
+        boxsep=0pt,
+        pad at break=0pt,
+        underlay unbroken and first={
+          \begin{tcbclipinterior}
+            \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+          \end{tcbclipinterior}
+        },
+        underlay middle={
+          \begin{tcbclipinterior}
+            \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+          \end{tcbclipinterior}
+        },
+        underlay last={
+          \begin{tcbclipinterior}
+            \draw[step=5mm, gray!40, thin] (interior.south west) grid (interior.north east);
+          \end{tcbclipinterior}
+        },
+      ]
+    \else
+      % Blank version (just grey border)
+      \begin{tcolorbox}[
+        breakable,
+        enhanced jigsaw,
+        colback=white,
+        colframe=gray!40,
+        boxrule=0.4pt,
+        arc=0pt,
+        outer arc=0pt,
+        left=0pt, right=0pt, top=0pt, bottom=0pt,
+        boxsep=0pt,
+        pad at break=0pt,
+      ]
+    \fi
     % Insert 1cm tall paragraphs to allow page breaks
-    \antwortfeldloop=0
-    \loop\ifnum\antwortfeldloop<#1
+    \examanswerfieldloop=0
+    \loop\ifnum\examanswerfieldloop<#1
       \strut\par\vspace{0.65cm}%
-      \advance\antwortfeldloop by 1
+      \advance\examanswerfieldloop by 1
     \repeat
     \end{tcolorbox}%
     \par\vspace{0.3\baselineskip}%
@@ -92,7 +115,7 @@
 }
 
 %% Points table - defined by Lua filter (providecommand as fallback)
-\providecommand{\punktetabelle}{%
+\providecommand{\exampointstable}{%
 \begin{tabular}{|l|c|c|}
   \hline
   & mögliche Punkte & erreichte Punkte \\
@@ -110,6 +133,6 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyhead[L]{\small Klausur \examsemester{} --- \examveranstaltungkurz}
+\fancyhead[L]{\small Klausur \examsemester{} --- \examcourseshort}
 \fancyhead[R]{\small Name: \rule{4cm}{0.4pt}}
 \fancyfoot[R]{Seite \thepage{} von \pageref{LastPage}}
