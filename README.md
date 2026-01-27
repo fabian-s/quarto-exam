@@ -34,7 +34,7 @@ semester: "Winter 2024/25"
 course: "Advanced Statistical Methods"
 course-short: "ASM"
 instructor: "Prof. Dr. Name"
-date: "15.02.2025"
+exam-date: "15.02.2025"
 duration: 90
 exam-lang: en
 grid-paper: true
@@ -162,7 +162,7 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 | `course` | Full course title | required |
 | `course-short` | Short name for headers | falls back to `course` |
 | `instructor` | Instructor name(s) | required |
-| `date` | Exam date | required |
+| `exam-date` | Exam date (any format) | required |
 | `duration` | Duration in minutes | required |
 | `exam-lang` | `de` or `en` | `de` |
 | `grid-paper` | Grid lines in answer fields | `true` |

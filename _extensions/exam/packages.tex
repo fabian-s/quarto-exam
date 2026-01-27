@@ -53,7 +53,8 @@
 %% Uses breakable tcolorbox so it can continue onto next page
 %% Grid lines shown only when \ifexamgrid is true
 %% Usage: \examanswerfield{height in cm}, e.g., \examanswerfield{4}
-\newcount\examanswerfieldloop
+\newlength{\examanswerfieldtarget}
+\newlength{\examanswerfieldcurrent}
 \newcommand{\examanswerfield}[1]{%
   \ifsolution
     \vspace{0.5\baselineskip}% minimal space in solution mode
@@ -104,10 +105,12 @@
       ]
     \fi
     % Insert 1cm tall paragraphs to allow page breaks
-    \examanswerfieldloop=0
-    \loop\ifnum\examanswerfieldloop<#1
+    % Use dimension comparison to handle decimal heights (e.g., 7.5)
+    \setlength{\examanswerfieldtarget}{#1 cm}%
+    \setlength{\examanswerfieldcurrent}{0pt}%
+    \loop\ifdim\examanswerfieldcurrent<\examanswerfieldtarget
       \strut\par\vspace{0.65cm}%
-      \advance\examanswerfieldloop by 1
+      \addtolength{\examanswerfieldcurrent}{1cm}%
     \repeat
     \end{tcolorbox}%
     \par\vspace{0.3\baselineskip}%
@@ -134,5 +137,5 @@
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 \fancyhead[L]{\small Klausur \examsemester{} --- \examcourseshort}
-\fancyhead[R]{\small Name: \rule{4cm}{0.4pt}}
+\fancyhead[R]{}
 \fancyfoot[R]{Seite \thepage{} von \pageref{LastPage}}

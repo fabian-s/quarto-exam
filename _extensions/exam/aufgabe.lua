@@ -39,6 +39,31 @@ local lang_strings = {
   }
 }
 
+-- Helper to get the directory containing this filter script
+local function get_filter_directory()
+  local script_path = PANDOC_SCRIPT_FILE
+  if script_path then
+    return script_path:match("(.*/)" ) or script_path:match("(.*\\)") or "./"
+  end
+  return "./"
+end
+
+-- Helper to read a file's contents
+local function read_file(path)
+  local file = io.open(path, "r")
+  if not file then return nil end
+  local content = file:read("*all")
+  file:close()
+  return content
+end
+
+-- Read coverpage template based on language
+local function read_coverpage(lang)
+  local filter_dir = get_filter_directory()
+  local filename = (lang == "en") and "coverpage.tex" or "deckblatt.tex"
+  return read_file(filter_dir .. filename)
+end
+
 -- Helper to get metadata value as string
 local function meta_to_string(meta_value)
   if meta_value == nil then
@@ -298,7 +323,7 @@ local function generate_extra_pages(num_pages, lang, use_grid)
 
   for i = 1, num_pages do
     if use_grid then
-      -- Grid version: full-page grid with title and reminder
+      -- Grid version: full-page grid with title
       table.insert(pages, string.format([[
 \clearpage
 \thispagestyle{fancy}
@@ -319,23 +344,16 @@ local function generate_extra_pages(num_pages, lang, use_grid)
     \end{tcbclipinterior}
   },
 ]
-\vfill
-\begin{center}
-\textit{%s}
-\end{center}
+\mbox{}
 \end{tcolorbox}
-]], strings.extra_page_title, strings.extra_page_reminder))
+]], strings.extra_page_title))
     else
-      -- Blank version: just title and reminder
+      -- Blank version: just title
       table.insert(pages, string.format([[
 \clearpage
-\mbox{}\par
+\thispagestyle{fancy}
 {\bfseries\Large %s}
-\vfill
-\begin{center}
-\textit{%s}
-\end{center}
-]], strings.extra_page_title, strings.extra_page_reminder))
+]], strings.extra_page_title))
     end
   end
 
@@ -610,7 +628,7 @@ function Pandoc(doc)
     course_short = course  -- Fall back to full name
   end
   local instructor = meta_to_string(doc.meta.instructor)
-  local exam_date = meta_to_string(doc.meta.date)
+  local exam_date = meta_to_string(doc.meta["exam-date"])
   local duration = meta_to_string(doc.meta.duration)
 
   -- Set solution and grid flags for LaTeX
@@ -659,10 +677,10 @@ function Pandoc(doc)
 %% Header/footer (language: %s)
 \AtBeginDocument{
   \fancyhead[L]{\small %s}
-  \fancyhead[R]{\small %s: \rule{4cm}{0.4pt}}
+  \fancyhead[R]{}
   \fancyfoot[R]{%s}
 }
-]], exam_lang, header_left, strings.header_right, footer_page)
+]], exam_lang, header_left, footer_page)
 
   -- Add extra pages at end of document (with grid if enabled)
   if extra_pages > 0 then
@@ -681,9 +699,13 @@ function Pandoc(doc)
   table.insert(header_includes, pandoc.MetaBlocks({pandoc.RawBlock("latex", latex_cmds)}))
   doc.meta["header-includes"] = header_includes
 
-  -- Set include-before-body based on language
-  local coverpage_file = (exam_lang == "en") and "coverpage.tex" or "deckblatt.tex"
-  doc.meta["include-before-body"] = pandoc.MetaList({pandoc.MetaString(coverpage_file)})
+  -- Insert coverpage at beginning of document
+  -- Note: We read and insert the file directly because setting include-before-body
+  -- dynamically doesn't work - Quarto resolves file includes before Lua filters run
+  local coverpage_latex = read_coverpage(exam_lang)
+  if coverpage_latex and coverpage_latex ~= "" then
+    table.insert(doc.blocks, 1, pandoc.RawBlock("latex", coverpage_latex))
+  end
 
   return doc
 end

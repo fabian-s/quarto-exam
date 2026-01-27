@@ -50,7 +50,7 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 - `packages.tex` - LaTeX preamble: point marker commands (`\p`, `\hp`, `\pp`), answer field, solution box styling
 - `deckblatt.tex` - German cover page (page 1): student fields and auto-generated points table
 - `coverpage.tex` - English cover page (page 1): student fields and auto-generated points table
-- `aufgabe.lua` - Lua filter that auto-numbers `##`/`###` headings, counts point markers in solutions, generates points table, handles answer fields, generates extra pages
+- `aufgabe.lua` - Lua filter that auto-numbers `##`/`###` headings, counts point markers in solutions, generates points table, handles answer fields, inserts coverpage, generates extra pages
 
 **User-provided files:**
 - `hinweise.qmd` - German instructions page (page 2): exam rules
@@ -65,7 +65,7 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 | `course` | Full course title (shown on cover page) | required |
 | `course-short` | Short course name for page headers | falls back to `course` |
 | `instructor` | Instructor name(s) | required |
-| `date` | Exam date | required |
+| `exam-date` | Exam date (use any format, e.g., "15.02.2025") | required |
 | `duration` | Duration in minutes | required |
 | `exam-lang` | Language: `de` or `en` | `de` |
 | `grid-paper` | Grid lines in answer fields and extra pages | `true` |
@@ -178,7 +178,7 @@ semester: "Winter 2024/25"
 course: "Advanced Statistical Methods"
 course-short: "ASM"
 instructor: "Prof. Dr. Name"
-date: "15.02.2025"
+exam-date: "15.02.2025"
 duration: 90
 exam-lang: en
 grid-paper: true
