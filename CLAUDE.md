@@ -130,7 +130,7 @@ Solution content here...
 **Sub-exercise headers (`###`):**
 - `###` on its own line denotes a sub-exercise, auto-numbered a), b), c)...
 - The paragraph following `###` becomes the question text
-- Format: `a) question text [X Punkte]` / `a) question text [X Points]`
+- Format: `a) [X P] question text...` (abbreviated points at beginning)
 - Sub-exercise numbering resets with each new exercise
 
 **Point calculation:**
@@ -234,10 +234,10 @@ Question text...
 Exercise 2: Condition Numbers                             [Y Points]
 Introduction text...
 
-a) f(A) = A + B                                           [3 Points]
+a) [3 P] f(A) = A + B
 [2.5cm answer box with grid]
 
-b) f(A) = A B                                             [3 Points]
+b) [3 P] f(A) = A B
 [auto-sized answer box with grid]
 ```
 

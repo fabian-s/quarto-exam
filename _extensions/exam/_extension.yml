@@ -23,6 +23,6 @@ contributes:
           path: aufgabe.lua
       include-in-header:
         - packages.tex
-      # Note: include-before-body (coverpage) is set dynamically by aufgabe.lua
-      # based on exam-lang setting (deckblatt.tex for German, coverpage.tex for English)
-      # Extra pages (zusatzblatt) are also generated dynamically based on extra-pages setting
+      # Note: Coverpage is inserted as a RawBlock by aufgabe.lua (not via include-before-body,
+      # because Quarto resolves file includes before Lua filters run).
+      # Extra pages are also generated dynamically based on extra-pages setting.

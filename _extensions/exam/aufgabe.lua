@@ -14,6 +14,7 @@ local lang_strings = {
   de = {
     exercise = "Aufgabe",
     points = "Punkte",
+    points_abbrev = "P",  -- Abbreviated form for sub-exercises
     points_table_possible = "mögliche Punkte",
     points_table_achieved = "erreichte Punkte",
     points_table_sum = "Summe",
@@ -27,6 +28,7 @@ local lang_strings = {
   en = {
     exercise = "Exercise",
     points = "Points",
+    points_abbrev = "P",  -- Abbreviated form for sub-exercises
     points_table_possible = "possible points",
     points_table_achieved = "points achieved",
     points_table_sum = "Total",
@@ -583,7 +585,7 @@ function Pandoc(doc)
       goto continue2
     end
 
-    -- Format sub-exercise paragraphs (add "a)" prefix and points)
+    -- Format sub-exercise paragraphs (add "a) [X P]" prefix)
     local sub_para_info = subexercise_para_indices[i]
     if sub_para_info then
       local ex = sub_para_info[1]
@@ -591,22 +593,18 @@ function Pandoc(doc)
       local pts = subexercise_points[ex][sub] or 0
       local letter = num_to_letter(sub)
 
-      -- Prepend letter label
-      local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} ", letter))
-
-      -- Append points (flush right, language-aware)
-      local points_suffix = ""
+      -- Build label with points at the beginning: "a) [X P] "
+      local points_str = ""
       if pts > 0 then
-        points_suffix = string.format(" \\hfill [%s %s]", format_points(pts), strings.points)
+        points_str = string.format("[%s %s] ", format_points(pts), strings.points_abbrev)
       end
-      local points_inline = pandoc.RawInline("latex", points_suffix)
+      local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} %s", letter, points_str))
 
-      -- Build new content
+      -- Build new content with label followed by question text
       local new_content = {label}
       for _, el in ipairs(block.content) do
         table.insert(new_content, el)
       end
-      table.insert(new_content, points_inline)
 
       block.content = new_content
       table.insert(final_blocks, block)
