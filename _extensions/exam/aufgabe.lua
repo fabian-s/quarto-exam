@@ -396,7 +396,7 @@ function Pandoc(doc)
   -- Track positions for formatting
   local exercise_header_indices = {}   -- block index -> exercise number
   local subexercise_indices = {}       -- block index -> {exercise, subexercise}
-  local subexercise_para_indices = {}  -- block index -> {exercise, subexercise} for the paragraph after ###
+  local subexercise_first_block_indices = {}  -- block index -> {exercise, subexercise} for the first block after ###
 
   -- First pass: identify exercises, sub-exercises, and count points
   local new_blocks = {}
@@ -444,18 +444,13 @@ function Pandoc(doc)
       goto continue
     end
 
-    -- Check if this is the paragraph following a ### header
-    if pending_subexercise and (block.t == "Para" or block.t == "Plain") then
-      -- This paragraph becomes the sub-exercise question
-      subexercise_para_indices[#new_blocks + 1] = pending_subexercise
+    -- Check if this is the first block following a ### header
+    if pending_subexercise then
+      -- Record this block (whatever type) as the sub-exercise start
+      subexercise_first_block_indices[#new_blocks + 1] = pending_subexercise
       pending_subexercise = nil
       table.insert(new_blocks, block)
       goto continue
-    end
-
-    -- Clear pending subexercise if we hit a non-paragraph block
-    if pending_subexercise and block.t ~= "Para" and block.t ~= "Plain" then
-      pending_subexercise = nil
     end
 
     -- Transform .solution divs and handle answer fields
@@ -585,11 +580,11 @@ function Pandoc(doc)
       goto continue2
     end
 
-    -- Format sub-exercise paragraphs (add "a) [X P]" prefix)
-    local sub_para_info = subexercise_para_indices[i]
-    if sub_para_info then
-      local ex = sub_para_info[1]
-      local sub = sub_para_info[2]
+    -- Format sub-exercise first blocks (add "a) [X P]" prefix)
+    local sub_block_info = subexercise_first_block_indices[i]
+    if sub_block_info then
+      local ex = sub_block_info[1]
+      local sub = sub_block_info[2]
       local pts = subexercise_points[ex][sub] or 0
       local letter = num_to_letter(sub)
 
@@ -598,16 +593,20 @@ function Pandoc(doc)
       if pts > 0 then
         points_str = string.format("[%s %s] ", format_points(pts), strings.points_abbrev)
       end
-      local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} %s", letter, points_str))
 
-      -- Build new content with label followed by question text
-      local new_content = {label}
-      for _, el in ipairs(block.content) do
-        table.insert(new_content, el)
+      if block.t == "Para" or block.t == "Plain" then
+        -- Inline the label at start of paragraph (existing behavior)
+        local label = pandoc.RawInline("latex", string.format("\\textbf{%s)} %s", letter, points_str))
+        table.insert(block.content, 1, label)
+        table.insert(final_blocks, block)
+      else
+        -- Insert label as separate paragraph before the block
+        local label_para = pandoc.Para({
+          pandoc.RawInline("latex", string.format("\\textbf{%s)} %s", letter, points_str))
+        })
+        table.insert(final_blocks, label_para)
+        table.insert(final_blocks, block)
       end
-
-      block.content = new_content
-      table.insert(final_blocks, block)
       goto continue2
     end
 
