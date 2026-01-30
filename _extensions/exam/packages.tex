@@ -23,10 +23,8 @@
 %% Solution mode toggle - defined and set by Lua filter in header-includes
 %% \ifsolution is defined by the filter before this file is included
 
-%% Grid mode toggle - defined by Lua filter
-%% \ifexamgrid controls whether answer fields have grid lines or are blank
-\providecommand{\examgridtrue}{\global\examgridtrue}
-\providecommand{\examgridfalse}{\global\examgridfalse}
+%% Grid mode toggle (\ifexamgrid) is defined by aufgabe.lua
+%% via header-includes using \newif
 
 %% Metadata commands - defined by Lua filter (providecommand as fallback)
 \providecommand{\examsemester}{}
@@ -46,7 +44,7 @@
 %% These work both in text mode and math mode
 \newcommand{\pmark}[1]{\ifsolution\ifmmode\text{\textsuperscript{\textcolor{red}{\tiny[#1]}}}\else\textsuperscript{\textcolor{red}{\tiny[#1]}}\fi\fi}
 \newcommand{\p}{\pmark{1P}}
-\newcommand{\hp}{\pmark{½P}}
+\newcommand{\hp}{\pmark{\textonehalf P}}
 \newcommand{\pp}{\pmark{2P}}
 
 %% Answer field (only shown when solution=false)

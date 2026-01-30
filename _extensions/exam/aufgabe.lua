@@ -168,30 +168,23 @@ local function is_solution_div(div)
 end
 
 -- Count point markers in text (LaTeX raw content)
+-- Uses frontier patterns and gsub to avoid adjacent-marker miscounting
 local function count_points_in_text(text)
   local points = 0
-  -- Count \p markers (1 point)
-  -- Match \p followed by non-letter (end of command), but not \pp or \punkte
-  for _ in text:gmatch("\\p[^a-zA-Z]") do
-    points = points + point_values["\\p"]
-  end
-  -- Also match \p at end of string
-  if text:match("\\p$") then
-    points = points + point_values["\\p"]
-  end
-  -- Count \hp markers (half point)
-  for _ in text:gmatch("\\hp[^a-zA-Z]") do
+  local s = text
+  -- Pass 1: \hp (must precede \p)
+  for _ in s:gmatch("\\hp%f[^a-zA-Z]") do
     points = points + point_values["\\hp"]
   end
-  if text:match("\\hp$") then
-    points = points + point_values["\\hp"]
-  end
-  -- Count \pp markers (double point)
-  for _ in text:gmatch("\\pp[^a-zA-Z]") do
+  s = s:gsub("\\hp%f[^a-zA-Z]", "")
+  -- Pass 2: \pp (must precede \p)
+  for _ in s:gmatch("\\pp%f[^a-zA-Z]") do
     points = points + point_values["\\pp"]
   end
-  if text:match("\\pp$") then
-    points = points + point_values["\\pp"]
+  s = s:gsub("\\pp%f[^a-zA-Z]", "")
+  -- Pass 3: \p
+  for _ in s:gmatch("\\p%f[^a-zA-Z]") do
+    points = points + point_values["\\p"]
   end
   return points
 end
@@ -284,8 +277,12 @@ local function estimate_content_height(blocks)
       local text = pandoc.utils.stringify(block.content)
       total_chars = total_chars + #text
       extra_lines = extra_lines + 1  -- paragraph spacing
-    elseif block.t == "Math" or (block.t == "Para" and block.content[1] and block.content[1].t == "Math") then
-      extra_lines = extra_lines + 2  -- display math takes more space
+      -- Check for DisplayMath inlines inside Para/Plain
+      for _, inline in ipairs(block.content) do
+        if inline.t == "Math" and inline.mathtype == "DisplayMath" then
+          extra_lines = extra_lines + 2
+        end
+      end
     elseif block.t == "BulletList" or block.t == "OrderedList" then
       for _, item in ipairs(block.content) do
         local text = pandoc.utils.stringify(item)
@@ -495,8 +492,8 @@ function Pandoc(doc)
           -- Exam mode: replace solution with answer field (if enabled)
           if show_answerfields then
             local height
-            if box_attr then
-              -- Use specified height
+            if box_attr and tonumber(box_attr) then
+              -- Use specified numeric height
               height = box_attr
             else
               -- Estimate height from content
