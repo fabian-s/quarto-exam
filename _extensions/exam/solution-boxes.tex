@@ -16,20 +16,15 @@
   right=2mm,
 }
 
-%% Solution mode toggle - defined by Lua filter in header-includes
-\providecommand{\solutiontrue}{\global\solutiontrue}
-\providecommand{\solutionfalse}{\global\solutionfalse}
-
-%% Grid mode toggle - defined by Lua filter
-\providecommand{\examgridtrue}{\global\examgridtrue}
-\providecommand{\examgridfalse}{\global\examgridfalse}
+%% Solution toggle (\ifsolution) and grid toggle (\ifexamgrid)
+%% are defined by solution.lua via header-includes using \newif
 
 %% Point markers for grading - only visible in solution mode
 %% \p = 1 point, \hp = 0.5 points (half), \pp = 2 points (double)
 %% These work both in text mode and math mode
 \newcommand{\pmark}[1]{\ifsolution\ifmmode\text{\textsuperscript{\textcolor{red}{\tiny[#1]}}}\else\textsuperscript{\textcolor{red}{\tiny[#1]}}\fi\fi}
 \newcommand{\p}{\pmark{1P}}
-\newcommand{\hp}{\pmark{½P}}
+\newcommand{\hp}{\pmark{\textonehalf P}}
 \newcommand{\pp}{\pmark{2P}}
 
 %% Answer field (only shown when solution=false)

@@ -7,6 +7,7 @@ examperiod: Examination Period
 format: exam-pdf
 ---
 
+<!-- Points are auto-counted from \p (1), \hp (0.5), \pp (2) markers in solution blocks -->
 **The exam contains FIVE questions. ALL questions must be answered. The exam is worth 100 marks in total.**
 
 \vspace*{2cm}
@@ -29,8 +30,6 @@ $$\frac{\partial \ell}{\partial \sigma^2} = -\frac{n}{2\sigma^2} + \frac{1}{2(\s
 Solving gives $\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n (x_i-\bar{x})^2$ \p
 :::
 
-\marks{20}
-
 #
 
 Second question.
@@ -43,15 +42,11 @@ Second question.
 Solution for part a. \p \p
 :::
 
-\marks{4}
-
 (b) More stuff.
 
 ::: {.solution box=4}
 Solution for part b with more detail. \p \pp
 :::
-
-\marks{10}
 
 (c) Final part.
 
@@ -59,5 +54,3 @@ Solution for part b with more detail. \p \pp
 Solution for part c - height is auto-estimated from content length.
 This allows for flexible answer fields. \p \p \p
 :::
-
-\marks{6}

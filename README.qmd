@@ -84,15 +84,17 @@ quarto render template.qmd -M solution:false -M grid-paper:false
 - `box=X` - Creates an answer field of X cm height in exam mode
 - If `box` is omitted, height is auto-estimated from solution content
 
-### Point markers
+### Point markers and automatic marks
 
-Use point markers inside solution blocks for grading annotations:
+Place point markers inside solution blocks to annotate where marks are awarded:
 
 - `\p` - 1 point
 - `\hp` - 0.5 points (half point)
 - `\pp` - 2 points (double points)
 
 In solution mode, these display as red superscripts (e.g., `^[1P]`). In exam mode, they are invisible.
+
+Marks are **automatically counted** from these markers and displayed in a box after each solution block (e.g., *7 marks*). Section totals are computed and shown at the end of each section. There is no need to add `\marks{N}` manually.
 
 ### YAML options
 
