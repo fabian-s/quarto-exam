@@ -2,6 +2,7 @@
 % Note: xcolor, amsmath, amssymb are already loaded by Quarto
 \usepackage{fancyhdr}
 \usepackage{lastpage}
+\usepackage{textcomp}
 \usepackage{tikz}
 \usepackage[most]{tcolorbox}
 
@@ -36,13 +37,10 @@
 \providecommand{\examexercisecount}{0}
 \providecommand{\examtotalpoints}{0}
 
-%% Points command - displays points in parentheses
-\newcommand{\exampoints}[1]{\hfill\textbf{(#1 Punkte)}}
-
 %% Point markers for grading - only visible in solution mode
 %% \p = 1 point, \hp = 0.5 points (half), \pp = 2 points (double)
 %% These work both in text mode and math mode
-\newcommand{\pmark}[1]{\ifsolution\ifmmode\text{\textsuperscript{\textcolor{red}{\tiny[#1]}}}\else\textsuperscript{\textcolor{red}{\tiny[#1]}}\fi\fi}
+\DeclareRobustCommand{\pmark}[1]{\ifsolution\ifmmode\text{\textsuperscript{\textcolor{red}{\tiny[#1]}}}\else\textsuperscript{\textcolor{red}{\tiny[#1]}}\fi\fi}
 \newcommand{\p}{\pmark{1P}}
 \newcommand{\hp}{\pmark{\textonehalf P}}
 \newcommand{\pp}{\pmark{2P}}
@@ -129,11 +127,8 @@
 \end{tabular}%
 }
 
-%% Header and footer
+%% Header and footer style (content set by aufgabe.lua via \AtBeginDocument)
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyhead[L]{\small Klausur \examsemester{} --- \examcourseshort}
-\fancyhead[R]{}
-\fancyfoot[R]{Seite \thepage{} von \pageref{LastPage}}

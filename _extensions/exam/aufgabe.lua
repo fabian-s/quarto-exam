@@ -162,9 +162,21 @@ local function generate_points_table(exercise_points, lang)
   return table_latex, total
 end
 
--- Check if a Div is a solution block
-local function is_solution_div(div)
-  return div.classes:includes("solution")
+-- Escape LaTeX-special characters in user-provided metadata strings
+-- Only escapes chars that would break \newcommand{...}{VALUE} injection
+local function escape_latex(str)
+  -- Order matters: backslash first, then the rest
+  str = str:gsub("\\", "\\textbackslash{}")
+  str = str:gsub("%%", "\\%%")
+  str = str:gsub("#", "\\#")
+  str = str:gsub("%$", "\\$")
+  str = str:gsub("&", "\\&")
+  str = str:gsub("_", "\\_")
+  str = str:gsub("{", "\\{")
+  str = str:gsub("}", "\\}")
+  str = str:gsub("~", "\\textasciitilde{}")
+  str = str:gsub("%^", "\\textasciicircum{}")
+  return str
 end
 
 -- Count point markers in text (LaTeX raw content)
@@ -289,6 +301,10 @@ local function estimate_content_height(blocks)
         total_chars = total_chars + #text
         extra_lines = extra_lines + 0.5  -- list item spacing
       end
+    elseif block.t == "CodeBlock" then
+      -- Count actual lines in code blocks
+      local _, newlines = block.text:gsub("\n", "\n")
+      extra_lines = extra_lines + newlines + 2  -- +1 for last line, +1 for spacing
     elseif block.t == "RawBlock" then
       -- LaTeX blocks - estimate based on content
       extra_lines = extra_lines + 2
@@ -361,12 +377,26 @@ end
 
 -- Main filter function - processes entire document
 function Pandoc(doc)
+  -- Validate required metadata fields
+  local required_fields = {"semester", "course", "instructor", "exam-date", "duration"}
+  for _, field in ipairs(required_fields) do
+    if not doc.meta[field] or meta_to_string(doc.meta[field]) == "" then
+      io.stderr:write(string.format("[exam] ERROR: required metadata field '%s' is missing\n", field))
+      error(string.format("Required metadata field missing: %s", field))
+    end
+  end
+
   -- Get exam language (default: de)
   local exam_lang = meta_to_string(doc.meta["exam-lang"])
   if exam_lang == "" then
     exam_lang = "de"
   end
-  local strings = lang_strings[exam_lang] or lang_strings["de"]
+  if not lang_strings[exam_lang] then
+    io.stderr:write(string.format(
+      "[exam] Warning: unsupported language '%s', falling back to German (de)\n", exam_lang))
+    exam_lang = "de"
+  end
+  local strings = lang_strings[exam_lang]
 
   -- Get extra pages count (default: 2)
   local extra_pages = meta_to_number(doc.meta["extra-pages"], 2)
@@ -392,6 +422,7 @@ function Pandoc(doc)
 
   -- Track positions for formatting
   local exercise_header_indices = {}   -- block index -> exercise number
+  local exercise_titles = {}           -- exercise number -> title string
   local subexercise_indices = {}       -- block index -> {exercise, subexercise}
   local subexercise_first_block_indices = {}  -- block index -> {exercise, subexercise} for the first block after ###
 
@@ -414,8 +445,8 @@ function Pandoc(doc)
       local title = pandoc.utils.stringify(block.content)
       title = title:match("^%s*(.-)%s*$") or ""  -- Trim whitespace
 
-      -- Store original title for later formatting
-      block.attributes["exam-title"] = title
+      -- Store original title for later formatting (in Lua table, not AST)
+      exercise_titles[current_exercise] = title
 
       table.insert(new_blocks, block)
       exercise_header_indices[#new_blocks] = current_exercise
@@ -446,13 +477,18 @@ function Pandoc(doc)
       -- Record this block (whatever type) as the sub-exercise start
       subexercise_first_block_indices[#new_blocks + 1] = pending_subexercise
       pending_subexercise = nil
-      table.insert(new_blocks, block)
-      goto continue
+      -- Don't skip Div processing: if this block is a .solution div,
+      -- it still needs point counting and answer field transformation.
+      -- Only skip further processing for non-Div blocks.
+      if block.t ~= "Div" then
+        table.insert(new_blocks, block)
+        goto continue
+      end
     end
 
     -- Transform .solution divs and handle answer fields
     if block.t == "Div" then
-      local is_solution = block.classes:includes("solution") or is_solution_div(block)
+      local is_solution = block.classes:includes("solution")
 
       -- Count points in solution divs (always, regardless of mode)
       if is_solution and current_exercise > 0 then
@@ -492,10 +528,15 @@ function Pandoc(doc)
           -- Exam mode: replace solution with answer field (if enabled)
           if show_answerfields then
             local height
-            if box_attr and tonumber(box_attr) then
-              -- Use specified numeric height
+            local box_num = box_attr and tonumber(box_attr)
+            if box_num and box_num > 0 and box_num <= 50 then
+              -- Use specified numeric height (validated range)
               height = box_attr
             else
+              if box_attr and not (box_num and box_num > 0 and box_num <= 50) then
+                io.stderr:write(string.format(
+                  "[exam] Warning: invalid box value '%s', using auto-estimation\n", box_attr))
+              end
               -- Estimate height from content
               height = estimate_content_height(block.content)
             end
@@ -543,8 +584,7 @@ function Pandoc(doc)
     -- Format exercise headers
     local ex_num = exercise_header_indices[i]
     if ex_num then
-      local title = block.attributes["exam-title"] or ""
-      block.attributes["exam-title"] = nil  -- Clean up
+      local title = exercise_titles[ex_num] or ""
 
       -- Create header text (language-aware)
       local header_text
@@ -615,15 +655,16 @@ function Pandoc(doc)
   doc.blocks = final_blocks
 
   -- Get metadata values (English YAML keys only)
-  local semester = meta_to_string(doc.meta.semester)
-  local course = meta_to_string(doc.meta.course)
-  local course_short = meta_to_string(doc.meta["course-short"])
+  -- Escape LaTeX-special characters to prevent compilation errors
+  local semester = escape_latex(meta_to_string(doc.meta.semester))
+  local course = escape_latex(meta_to_string(doc.meta.course))
+  local course_short = escape_latex(meta_to_string(doc.meta["course-short"]))
   if course_short == "" then
     course_short = course  -- Fall back to full name
   end
-  local instructor = meta_to_string(doc.meta.instructor)
-  local exam_date = meta_to_string(doc.meta["exam-date"])
-  local duration = meta_to_string(doc.meta.duration)
+  local instructor = escape_latex(meta_to_string(doc.meta.instructor))
+  local exam_date = escape_latex(meta_to_string(doc.meta["exam-date"]))
+  local duration = meta_to_string(doc.meta.duration)  -- numeric, no escaping needed
 
   -- Set solution and grid flags for LaTeX
   local solution_flag = is_solution_mode and "\\solutiontrue" or "\\solutionfalse"
