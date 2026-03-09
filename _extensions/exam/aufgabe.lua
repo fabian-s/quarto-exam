@@ -706,7 +706,8 @@ function Pandoc(doc)
   -- Add header/footer configuration (language-aware)
   -- Wrap in AtBeginDocument so it runs after fancyhdr is loaded
   local header_left = string.format(strings.header_left, "\\examsemester{}", "\\examcourseshort")
-  local footer_page = string.format(strings.footer_page, "\\thepage{}", "\\pageref{LastPage}")
+  -- Use the starred form to avoid a colored hyperref link in the footer.
+  local footer_page = string.format(strings.footer_page, "\\thepage{}", "\\pageref*{LastPage}")
   latex_cmds = latex_cmds .. string.format([[
 
 %% Header/footer (language: %s)
