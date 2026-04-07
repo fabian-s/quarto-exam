@@ -61,15 +61,16 @@ The extension lives in `_extensions/exam/` and contributes a single format: `exa
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `semester` | e.g., "Winter 2024/25" | required |
+| `semester` | e.g., "Winter 2024/25" | required when `coverpage: true` |
 | `course` | Full course title (shown on cover page) | required |
 | `course-short` | Short course name for page headers | falls back to `course` |
-| `instructor` | Instructor name(s) | required |
-| `exam-date` | Exam date (use any format, e.g., "15.02.2025") | required |
-| `duration` | Duration in minutes | required |
+| `instructor` | Instructor name(s) | required when `coverpage: true` |
+| `exam-date` | Exam date (use any format, e.g., "15.02.2025") | required when `coverpage: true` |
+| `duration` | Duration in minutes | required when `coverpage: true` |
 | `exam-lang` | Language: `de` or `en` | `de` |
 | `grid-paper` | Grid lines in answer fields and extra pages | `true` |
 | `extra-pages` | Number of extra pages at end | `2` |
+| `coverpage` | Show cover page with student fields and points table | `true` |
 | `answerfields` | Show answer fields in exam mode | `true` |
 | `format` | Must be `exam-pdf` | required |
 

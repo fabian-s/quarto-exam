@@ -8,6 +8,10 @@ duration: 90
 exam-lang: de
 grid-paper: true
 extra-pages: 2
+# For exercise/lab sheets, typically use:
+# coverpage: false
+# answerfields: false
+# extra-pages: 0
 format: exam-pdf
 ---
 

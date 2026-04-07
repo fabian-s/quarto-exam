@@ -19,8 +19,7 @@ local lang_strings = {
     points_table_achieved = "erreichte Punkte",
     points_table_sum = "Summe",
     points_table_none = "(Keine Punkte definiert)",
-    header_left = "Klausur %s --- %s",
-    header_right = "Name:",
+    header_exam_prefix = "Klausur",
     footer_page = "Seite %s von %s",
     extra_page_title = "Zusatzblatt",
     extra_page_reminder = "Name und Matrikelnummer nicht vergessen!",
@@ -33,8 +32,7 @@ local lang_strings = {
     points_table_achieved = "points achieved",
     points_table_sum = "Total",
     points_table_none = "(No points defined)",
-    header_left = "Exam %s --- %s",
-    header_right = "Name:",
+    header_exam_prefix = "Exam",
     footer_page = "Page %s of %s",
     extra_page_title = "Extra Page",
     extra_page_reminder = "Don't forget your name and student ID!",
@@ -105,6 +103,31 @@ local function meta_to_number(meta_value, default)
   local str = meta_to_string(meta_value)
   local num = tonumber(str)
   return num or default
+end
+
+local function is_nonempty(str)
+  return str ~= nil and str ~= ""
+end
+
+local function join_nonempty(parts, sep)
+  local filtered = {}
+  for _, part in ipairs(parts) do
+    if is_nonempty(part) then
+      table.insert(filtered, part)
+    end
+  end
+  return table.concat(filtered, sep)
+end
+
+local function build_header_left(show_coverpage, strings, semester, course_short)
+  local content = join_nonempty({semester, course_short}, " --- ")
+  if show_coverpage then
+    if content ~= "" then
+      return strings.header_exam_prefix .. " " .. content
+    end
+    return strings.header_exam_prefix
+  end
+  return content
 end
 
 -- Format points for display (handles decimals nicely)
@@ -377,8 +400,15 @@ end
 
 -- Main filter function - processes entire document
 function Pandoc(doc)
+  local show_coverpage = meta_to_bool(doc.meta["coverpage"], true)
+
   -- Validate required metadata fields
-  local required_fields = {"semester", "course", "instructor", "exam-date", "duration"}
+  local required_fields
+  if show_coverpage then
+    required_fields = {"semester", "course", "instructor", "exam-date", "duration"}
+  else
+    required_fields = {"course"}
+  end
   for _, field in ipairs(required_fields) do
     if not doc.meta[field] or meta_to_string(doc.meta[field]) == "" then
       io.stderr:write(string.format("[exam] ERROR: required metadata field '%s' is missing\n", field))
@@ -664,7 +694,7 @@ function Pandoc(doc)
   end
   local instructor = escape_latex(meta_to_string(doc.meta.instructor))
   local exam_date = escape_latex(meta_to_string(doc.meta["exam-date"]))
-  local duration = meta_to_string(doc.meta.duration)  -- numeric, no escaping needed
+  local duration = escape_latex(meta_to_string(doc.meta.duration))
 
   -- Set solution and grid flags for LaTeX
   local solution_flag = is_solution_mode and "\\solutiontrue" or "\\solutionfalse"
@@ -705,7 +735,12 @@ function Pandoc(doc)
 
   -- Add header/footer configuration (language-aware)
   -- Wrap in AtBeginDocument so it runs after fancyhdr is loaded
-  local header_left = string.format(strings.header_left, "\\examsemester{}", "\\examcourseshort")
+  local header_left = build_header_left(
+    show_coverpage,
+    strings,
+    semester ~= "" and "\\examsemester{}" or "",
+    course_short ~= "" and "\\examcourseshort{}" or ""
+  )
   -- Use the starred form to avoid a colored hyperref link in the footer.
   local footer_page = string.format(strings.footer_page, "\\thepage{}", "\\pageref*{LastPage}")
   latex_cmds = latex_cmds .. string.format([[
@@ -735,12 +770,14 @@ function Pandoc(doc)
   table.insert(header_includes, pandoc.MetaBlocks({pandoc.RawBlock("latex", latex_cmds)}))
   doc.meta["header-includes"] = header_includes
 
-  -- Insert coverpage at beginning of document
+  -- Insert coverpage at beginning of document unless disabled.
   -- Note: We read and insert the file directly because setting include-before-body
   -- dynamically doesn't work - Quarto resolves file includes before Lua filters run
-  local coverpage_latex = read_coverpage(exam_lang)
-  if coverpage_latex and coverpage_latex ~= "" then
-    table.insert(doc.blocks, 1, pandoc.RawBlock("latex", coverpage_latex))
+  if show_coverpage then
+    local coverpage_latex = read_coverpage(exam_lang)
+    if coverpage_latex and coverpage_latex ~= "" then
+      table.insert(doc.blocks, 1, pandoc.RawBlock("latex", coverpage_latex))
+    end
   end
 
   return doc

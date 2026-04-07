@@ -1,10 +1,10 @@
 # LMU Munich Exam Template
 
-A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. Features automatic exercise numbering, points tracking from solution markers, automatic answer field generation, and bilingual support (German/English).
+A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU Munich. It also works well for exercise and lab sheets by turning off the cover page, answer fields, and extra pages. Features automatic exercise numbering, points tracking from solution markers, automatic answer field generation, and bilingual support (German/English).
 
 ## Features
 
-- **Cover page** with student information fields and auto-generated points table
+- **Optional cover page** with student information fields and auto-generated points table
 - **Customizable instructions page** via included child document
 - **Auto-numbered exercises** via `##` headings (with optional titles)
 - **Auto-numbered sub-exercises** via `###` headings (a, b, c...)
@@ -15,6 +15,7 @@ A Quarto extension for creating professional PDF exam papers (Klausuren) for LMU
 - **Solution toggle** - render exam sheet or solution sheet from same source
 - **Bilingual support** - German (`exam-lang: de`) or English (`exam-lang: en`)
 - **Configurable extra pages** - set number of blank/grid pages at end
+- **Useful for exercise/lab sheets** - disable cover page and answer boxes while keeping numbering and optional points
 
 ## Installation
 
@@ -94,6 +95,9 @@ quarto render exam.qmd -M solution:false -M exam-lang:en -o exam-en.pdf
 
 # No extra pages at end
 quarto render exam.qmd -M solution:false -M extra-pages:0 -o exam.pdf
+
+# Exercise/lab sheet (no cover page, no answer boxes, no extra pages)
+quarto render sheet.qmd -M coverpage:false -M answerfields:false -M extra-pages:0 -o sheet.pdf
 ```
 
 | Cover Page | Exam Mode | Solution Mode |
@@ -128,6 +132,29 @@ Answer fields automatically break across pages if they're too tall to fit.
 
 **Disabling answer fields:** Set `answerfields: false` in front matter to omit all answer boxes (useful when students answer on separate paper).
 
+### Exercise and Lab Sheets
+
+For exercise sheets or lab handouts, use the same format and disable the exam-specific pages:
+
+```yaml
+---
+semester: "Summer 2026"
+course: "Advanced Statistical Methods"
+course-short: "ASM"
+instructor: "Prof. Dr. Name"
+coverpage: false
+answerfields: false
+extra-pages: 0
+format: exam-pdf
+---
+```
+
+Notes:
+- With `coverpage: false`, only `course` is required. `course-short` still falls back to `course`, and `semester`, `instructor`, `exam-date`, and `duration` become optional.
+- With `answerfields: false`, `.solution` blocks are omitted in normal mode and still shown with `-M solution:true`.
+- Point markers and exercise/sub-exercise numbering continue to work, so graded subsets of a sheet are supported.
+- For sheets, do not include `hinweise.qmd` / `instructions.qmd` unless you actually want the exam instructions page; start directly with your sheet content or include a custom intro instead.
+
 ### Exercise and Sub-Exercise Syntax
 
 **Exercises (`##`):**
@@ -158,15 +185,16 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `semester` | e.g., "Winter 2024/25" | required |
+| `semester` | e.g., "Winter 2024/25" | required when `coverpage: true` |
 | `course` | Full course title | required |
 | `course-short` | Short name for headers | falls back to `course` |
-| `instructor` | Instructor name(s) | required |
-| `exam-date` | Exam date (any format) | required |
-| `duration` | Duration in minutes | required |
+| `instructor` | Instructor name(s) | required when `coverpage: true` |
+| `exam-date` | Exam date (any format) | required when `coverpage: true` |
+| `duration` | Duration in minutes | required when `coverpage: true` |
 | `exam-lang` | `de` or `en` | `de` |
 | `grid-paper` | Grid lines in answer fields | `true` |
 | `extra-pages` | Extra pages at end | `2` |
+| `coverpage` | Show cover page with student fields and points table | `true` |
 | `answerfields` | Show answer boxes | `true` |
 | `format` | Must be `exam-pdf` | required |
 
@@ -175,7 +203,7 @@ Points are automatically calculated from markers inside `::: {.solution}` blocks
 Set `exam-lang: en` for English or `exam-lang: de` (default) for German.
 
 This affects:
-- Cover page layout and text
+- Cover page layout and text (when `coverpage: true`)
 - Exercise labels ("Aufgabe" vs "Exercise")
 - Points labels ("Punkte" vs "Points")
 - Points table headers
@@ -255,6 +283,8 @@ The template generates:
 2. **Page 2**: Exam instructions (from hinweise.qmd or instructions.qmd)
 3. **Pages 3+**: Exam questions with answer boxes (exam) or styled solutions (solution sheet)
 4. **Final pages**: Extra pages for additional work (grid or blank, configurable)
+
+For exercise or lab sheets with `coverpage:false`, `answerfields:false`, and `extra-pages:0`, the document starts directly with your sheet content.
 
 ## Credits
 
