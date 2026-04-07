@@ -778,6 +778,8 @@ function Pandoc(doc)
     if coverpage_latex and coverpage_latex ~= "" then
       table.insert(doc.blocks, 1, pandoc.RawBlock("latex", coverpage_latex))
     end
+  else
+    table.insert(doc.blocks, 1, pandoc.RawBlock("latex", "\\thispagestyle{fancy}"))
   end
 
   return doc
